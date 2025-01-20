@@ -1,5 +1,5 @@
 import { supabase } from "@/lib/supabase"
-import { FormGridClient } from "./FormGridClient"
+import { FormGridClient } from "../FormGridClient"
 
 async function getForms() {
   const { data, error } = await supabase
@@ -12,8 +12,9 @@ async function getForms() {
   return data
 }
 
-export async function FormGrid() {
+export async function FormGridServer() {
   const forms = await getForms()
+
   return <FormGridClient forms={forms} />
 }
 

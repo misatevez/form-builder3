@@ -4,12 +4,10 @@ import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { FormEntriesModal } from "./FormEntriesModal"
-import { useToast } from "@/components/ui/use-toast"
 import { useTheme } from "@/utils/theme"
 import { FileText } from "lucide-react"
 
 export function FormGridClient({ forms }) {
-  const { toast } = useToast()
   const [selectedForm, setSelectedForm] = useState(null)
   const [isEntriesModalOpen, setIsEntriesModalOpen] = useState(false)
   const { textColor, primaryColor } = useTheme()
@@ -23,7 +21,6 @@ export function FormGridClient({ forms }) {
               <CardTitle style={{ color: textColor }} className="text-base font-medium">
                 {form.name}
               </CardTitle>
-             
             </div>
             <Button
               onClick={() => {

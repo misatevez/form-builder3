@@ -18,16 +18,29 @@ import Signature from "./form-elements/Signature"
 import PhotoUpload from "./form-elements/PhotoUpload"
 import DynamicTable from "./form-elements/DynamicTable"
 import { useToast } from "@/components/ui/use-toast"
+import { useTheme } from "@/utils/theme"
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 
-export function EditEntryModal({ isOpen, onClose, form, entry }) {
+interface EntryFormModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  form: any;
+  existingEntry?: any;
+  fileName?: string;
+}
+
+export function EditEntryModal({ isOpen, onClose, form, entry, fileName = "" }: EntryFormModalProps) {
   const [formData, setFormData] = useState(entry?.data || {})
   const { toast } = useToast()
+  const { primaryColor } = useTheme()
+  const [localFileName, setLocalFileName] = useState(fileName);
 
   useEffect(() => {
     if (entry) {
-      setFormData(entry.data || {})
+      setFormData(entry.data || {});
+      setLocalFileName(entry.file_name || "");
     }
-  }, [entry])
+  }, [entry]);
 
   const handleSubmit = async (e, isDraft = false) => {
     e.preventDefault()
@@ -53,6 +66,7 @@ export function EditEntryModal({ isOpen, onClose, form, entry }) {
       .update({
         data: formData,
         is_draft: isDraft,
+        file_name: localFileName,
       })
       .eq("id", entry.id)
 
@@ -80,34 +94,220 @@ export function EditEntryModal({ isOpen, onClose, form, entry }) {
   }
 
   const renderComponent = (component) => {
-    // ... (mismo código que en CreateEntryModal)
+    switch (component.type) {
+      case "text":
+      case "email":
+        return (
+          <TextInput
+            id={component.id}
+            label={component.label}
+            value={formData[component.id] || ""}
+            onChange={(value) => handleInputChange(component.id, value)}
+            validation={component.validation}
+          />
+        )
+      case "number":
+        return (
+          <TextInput
+            id={component.id}
+            label={component.label}
+            type="number"
+            value={formData[component.id] || ""}
+            onChange={(value) => handleInputChange(component.id, Number(value))}
+            validation={component.validation}
+          />
+        )
+      case "select":
+        return (
+          <Select
+            id={component.id}
+            label={component.label}
+            value={formData[component.id] || ""}
+            onChange={(value) => handleInputChange(component.id, value)}
+            options={component.options || []}
+            validation={component.validation}
+          />
+        )
+      case "checkbox":
+        return (
+          <Checkbox
+            id={component.id}
+            label={component.label}
+            checked={formData[component.id] || false}
+            onChange={(value) => handleInputChange(component.id, value)}
+          />
+        )
+      case "date":
+        return (
+          <DatePicker
+            id={component.id}
+            label={component.label}
+            value={formData[component.id] || undefined}
+            onChange={(value) => handleInputChange(component.id, value)}
+            validation={component.validation}
+          />
+        )
+      case "time":
+        return (
+          <TimePicker
+            id={component.id}
+            label={component.label}
+            value={formData[component.id] || ""}
+            onChange={(value) => handleInputChange(component.id, value)}
+            validation={component.validation}
+          />
+        )
+      case "slider":
+        return (
+          <Slider
+            id={component.id}
+            label={component.label}
+            value={formData[component.id] || 0}
+            onChange={(value) => handleInputChange(component.id, value)}
+            min={component.min}
+            max={component.max}
+            step={component.step}
+            validation={component.validation}
+          />
+        )
+      case "rating":
+        return (
+          <Rating
+            id={component.id}
+            label={component.label}
+            value={formData[component.id] || 0}
+            onChange={(value) => handleInputChange(component.id, value)}
+            validation={component.validation}
+          />
+        )
+      case "color":
+        return (
+          <ColorPicker
+            id={component.id}
+            label={component.label}
+            value={formData[component.id] || "#000000"}
+            onChange={(value) => handleInputChange(component.id, value)}
+            validation={component.validation}
+          />
+        )
+      case "richtext":
+        return (
+          <RichTextEditor
+            id={component.id}
+            label={component.label}
+            value={formData[component.id] || ""}
+            onChange={(value) => handleInputChange(component.id, value)}
+            validation={component.validation}
+          />
+        )
+      case "autocomplete":
+        return (
+          <Autocomplete
+            id={component.id}
+            label={component.label}
+            value={formData[component.id] || ""}
+            onChange={(value) => handleInputChange(component.id, value)}
+            options={component.options || []}
+            validation={component.validation}
+          />
+        )
+      case "signature":
+        return (
+          <Signature
+            id={component.id}
+            label={component.label}
+            value={formData[component.id] || ""}
+            onChange={(value) => handleInputChange(component.id, value)}
+            validation={component.validation}
+          />
+        )
+      case "photo":
+        return (
+          <PhotoUpload
+            id={component.id}
+            label={component.label}
+            value={formData[component.id] || []}
+            onChange={(value) => handleInputChange(component.id, value)}
+            validation={component.validation}
+          />
+        )
+      case "dynamicTable":
+        return (
+          <div className="space-y-4">
+            <DynamicTable
+              id={component.id}
+              label={component.label}
+              value={formData[component.id] || []}
+              onChange={(value) => handleInputChange(component.id, value)}
+              columns={component.columns}
+              validation={component.validation}
+            />
+            <div className="flex justify-end">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const newRow = component.columns?.map(() => "") || []
+                  handleInputChange(component.id, [...(formData[component.id] || []), newRow])
+                }}
+              >
+                Añadir entrada
+              </Button>
+            </div>
+          </div>
+        )
+      default:
+        return (
+          <TextInput
+            id={component.id}
+            label={component.label}
+            value={formData[component.id] || ""}
+            onChange={(value) => handleInputChange(component.id, value)}
+            validation={component.validation}
+          />
+        )
+    }
   }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
-        <DialogHeader className="sticky top-0 bg-background z-10">
+      <DialogContent className="max-w-[60rem] p-0 h-[85vh] flex flex-col">
+        <DialogHeader className="p-6 pb-4 border-b shrink-0">
           <DialogTitle>Editar entrada para: {form?.name}</DialogTitle>
         </DialogHeader>
-        <form onSubmit={(e) => handleSubmit(e, false)} className="space-y-4">
-          <div className="space-y-4 mb-4 max-h-[60vh] overflow-y-auto pr-4">
-            {form?.data?.sections?.map((section) => (
-              <div key={section.id} className="space-y-2">
-                <h3 className="font-bold">{section.title}</h3>
-                {section.components.map((component) => (
-                  <div key={component.id}>{renderComponent(component)}</div>
-                ))}
+        <form onSubmit={(e) => handleSubmit(e, false)} className="flex flex-col min-h-0 flex-1">
+          <div className="flex-1 min-h-0">
+            <ScrollArea className="h-full">
+              <div className="px-6">
+                <div className="py-6 space-y-8">
+                  {form?.data?.sections?.map((section) => (
+                    <div key={section.id} className="space-y-4">
+                      <h3 className="text-lg font-semibold">{section.title}</h3>
+                      <div className="grid gap-6">
+                        {section.components.map((component) => (
+                          <div key={component.id} className="w-full">
+                            {renderComponent(component)}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
-            ))}
+              <ScrollBar />
+            </ScrollArea>
           </div>
-          <div className="sticky bottom-0 bg-background pt-2 flex justify-end space-x-2">
+          <div className="flex items-center justify-end gap-3 p-6 border-t bg-background shrink-0">
             <Button type="button" variant="outline" onClick={onClose}>
               Cancelar
             </Button>
             <Button type="button" variant="secondary" onClick={(e) => handleSubmit(e, true)}>
               Guardar como borrador
             </Button>
-            <Button type="submit">Guardar entrada</Button>
+            <Button type="submit" className="bg-[#2F4858] hover:bg-[#2F4858]/90 text-white">
+              Guardar entrada
+            </Button>
           </div>
         </form>
       </DialogContent>

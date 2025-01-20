@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { supabase } from "@/lib/supabase"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { EntryFormModal } from "./EntryFormModal"
+import { EditEntryModal } from "./EditEntryModal"
 import { useToast } from "@/components/ui/use-toast"
 import {
   AlertDialog,
@@ -19,10 +19,12 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { useTheme } from "@/utils/theme"
+import { EntryFormModal } from "./EntryFormModal"
 
 export function FormEntriesModal({ isOpen, onClose, form }) {
   const [entries, setEntries] = useState([])
-  const [entryModalState, setEntryModalState] = useState({ isOpen: false, entry: null })
+  const [entryModalState, setEntryModalState] = useState({ isOpen: false, entry: null, fileName: "" })
+  const [createModalState, setCreateModalState] = useState({ isOpen: false, fileName: "" });
   const { toast } = useToast()
   const isAuthorized = true // Placeholder: reemplazar con la lógica real de autorización
   const { primaryColor } = useTheme()
@@ -48,12 +50,15 @@ export function FormEntriesModal({ isOpen, onClose, form }) {
   }
 
   const handleEditEntry = (entry) => {
-    setEntryModalState({ isOpen: true, entry })
+    setEntryModalState({ isOpen: true, entry, fileName: entry.file_name });
   }
 
   const handleCreateEntry = () => {
-    setEntryModalState({ isOpen: true, entry: null })
-  }
+    const fileName = prompt("Ingresa el nombre del archivo para la nueva entrada:");
+    if (fileName) {
+      setCreateModalState({ isOpen: true, fileName });
+    }
+  };
 
   const handleDeleteForm = async () => {
     try {
@@ -114,7 +119,7 @@ export function FormEntriesModal({ isOpen, onClose, form }) {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>ID</TableHead>
+                    <TableHead>Nombre</TableHead>
                     <TableHead>Estado</TableHead>
                     <TableHead>Fecha de creación</TableHead>
                     <TableHead>Acciones</TableHead>
@@ -123,7 +128,7 @@ export function FormEntriesModal({ isOpen, onClose, form }) {
                 <TableBody>
                   {entries.map((entry) => (
                     <TableRow key={entry.id}>
-                      <TableCell>{entry.id}</TableCell>
+                      <TableCell>{entry.file_name}</TableCell>
                       <TableCell>{entry.is_draft ? "Borrador" : "Publicado"}</TableCell>
                       <TableCell>{new Date(entry.created_at).toLocaleString()}</TableCell>
                       <TableCell>
@@ -164,14 +169,26 @@ export function FormEntriesModal({ isOpen, onClose, form }) {
         </div>
       </DialogContent>
       {entryModalState.isOpen && (
-        <EntryFormModal
+        <EditEntryModal
           isOpen={entryModalState.isOpen}
           onClose={() => {
             setEntryModalState({ isOpen: false, entry: null })
             fetchEntries() // Refetch entries after closing the modal
           }}
           form={form}
-          existingEntry={entryModalState.entry}
+          entry={entryModalState.entry}
+          fileName={entryModalState.fileName}
+        />
+      )}
+      {createModalState.isOpen && (
+        <EntryFormModal
+          isOpen={createModalState.isOpen}
+          onClose={() => {
+            setCreateModalState({ isOpen: false, fileName: "" });
+            fetchEntries();
+          }}
+          form={form}
+          fileName={createModalState.fileName}
         />
       )}
     </Dialog>

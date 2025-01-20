@@ -17,11 +17,19 @@ import Autocomplete from "./form-elements/Autocomplete"
 import Signature from "./form-elements/Signature"
 import PhotoUpload from "./form-elements/PhotoUpload"
 import DynamicTable from "./form-elements/DynamicTable"
-import { toast } from "sonner"
+import { useToast } from "@/components/ui/use-toast"
 import { useTheme } from "@/utils/theme"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 
-export function EntryFormModal({ isOpen, onClose, form, existingEntry = null }) {
+interface EntryFormModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  form: any;
+  existingEntry?: any;
+  fileName?: string;
+}
+
+export function EntryFormModal({ isOpen, onClose, form, existingEntry = null, fileName = "" }: EntryFormModalProps) {
   const [formData, setFormData] = useState(() => {
     if (existingEntry && existingEntry.data) {
       return existingEntry.data
@@ -59,14 +67,11 @@ export function EntryFormModal({ isOpen, onClose, form, existingEntry = null }) 
     }
 
     let result
-<<<<<<< HEAD
     const entryData = {
       data: formData,
       is_draft: isDraft,
       file_name: localFileName,
     };
-=======
->>>>>>> parent of 248c3b1 (cambios esteticos generales)
     if (existingEntry) {
       result = await supabase
         .from("form_entries")
@@ -78,12 +83,7 @@ export function EntryFormModal({ isOpen, onClose, form, existingEntry = null }) 
     } else {
       result = await supabase.from("form_entries").insert({
         form_id: form.id,
-<<<<<<< HEAD
         ...entryData,
-=======
-        data: formData,
-        is_draft: isDraft,
->>>>>>> parent of 248c3b1 (cambios esteticos generales)
       })
     }
 
@@ -336,4 +336,3 @@ export function EntryFormModal({ isOpen, onClose, form, existingEntry = null }) 
     </Dialog>
   )
 }
-
