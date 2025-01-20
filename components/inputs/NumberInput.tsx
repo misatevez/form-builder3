@@ -25,4 +25,3 @@ export function NumberInput({ label, value, onChange, validation }: NumberInputP
     </div>
   );
 }
-

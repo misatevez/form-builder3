@@ -30,4 +30,3 @@ export function ColorPicker({ label, value, onChange, validation }: ColorPickerP
     </div>
   );
 }
-

@@ -205,4 +205,3 @@ export const pvCommissioningForm: FormTemplate = {
     },
   ],
 };
-

@@ -32,4 +32,3 @@ export function RichTextEditor({ label, value, onChange, validation }: RichTextE
     </div>
   );
 }
-

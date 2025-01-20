@@ -36,4 +36,3 @@ export function FormBuilderContent({ sections }: FormBuilderContentProps) {
     </ScrollArea>
   )
 }
-

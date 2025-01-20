@@ -23,4 +23,3 @@ export function TimePicker({ label, value, onChange, validation }: TimePickerPro
     </div>
   );
 }
-

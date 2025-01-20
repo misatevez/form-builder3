@@ -29,4 +29,3 @@ export function Select({ label, value, onChange, validation, options = [] }: Sel
     </div>
   );
 }
-

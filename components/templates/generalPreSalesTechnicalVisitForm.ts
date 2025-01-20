@@ -340,4 +340,3 @@ export const generalPreSalesTechnicalVisitForm: FormTemplate = {
     },
   ],
 };
-

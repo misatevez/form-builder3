@@ -33,4 +33,3 @@ export function Select({ id, label, value, onChange, validation, options = [] }:
 }
 
 export default Select;
-

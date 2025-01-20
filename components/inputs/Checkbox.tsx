@@ -23,4 +23,3 @@ export function Checkbox({ label, value, onChange, validation }: CheckboxProps) 
     </div>
   );
 }
-

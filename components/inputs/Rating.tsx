@@ -28,4 +28,3 @@ export function Rating({ label, value, onChange, validation }: RatingProps) {
     </div>
   );
 }
-

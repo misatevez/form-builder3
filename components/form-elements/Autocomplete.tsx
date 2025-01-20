@@ -83,4 +83,3 @@ const Autocomplete: React.FC<AutocompleteProps> = ({ id, label, value, onChange,
 };
 
 export default Autocomplete;
-

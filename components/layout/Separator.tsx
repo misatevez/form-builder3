@@ -17,4 +17,3 @@ export function Separator({ component }: SeparatorProps) {
     </div>
   );
 }
-

@@ -42,4 +42,3 @@ export function FormBuilderHeader({
     </div>
   )
 }
-

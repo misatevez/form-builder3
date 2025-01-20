@@ -69,4 +69,3 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({ id, label, value = [], onChan
 }
 
 export default PhotoUpload
-

@@ -25,4 +25,3 @@ export function withDragAndDrop<P extends DraggableItemProps>(WrappedComponent: 
     );
   };
 }
-

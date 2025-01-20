@@ -25,4 +25,3 @@ export function TextInput({ label, value, onChange, validation }: TextInputProps
     </div>
   );
 }
-

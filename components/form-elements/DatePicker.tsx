@@ -46,4 +46,3 @@ const DatePicker: React.FC<DatePickerProps> = ({ id, label, value, onChange, val
 };
 
 export default DatePicker;
-

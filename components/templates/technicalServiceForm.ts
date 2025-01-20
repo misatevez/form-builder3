@@ -125,4 +125,3 @@ export const technicalServiceForm: FormTemplate = {
     },
   ],
 };
-

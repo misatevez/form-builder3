@@ -27,4 +27,3 @@ export const templateExamples = [
   pvPreSalesTechnicalVisitForm,
   previousTechnicalVisitInspectionForm,
 ]
-

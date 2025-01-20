@@ -17,4 +17,3 @@ export default function Checkbox({ id, label, checked, onChange }: CheckboxProps
     </div>
   )
 }
-

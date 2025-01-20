@@ -25,4 +25,3 @@ export function Section({ component, data, dispatch, sectionId }: SectionProps) 
     </div>
   );
 }
-

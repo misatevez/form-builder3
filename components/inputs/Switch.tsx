@@ -28,4 +28,3 @@ export function Switch({ label, value, onChange, validation }: SwitchProps) {
     </div>
   );
 }
-

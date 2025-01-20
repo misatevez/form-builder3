@@ -23,4 +23,3 @@ export function DatePicker({ label, value, onChange, validation }: DatePickerPro
     </div>
   );
 }
-

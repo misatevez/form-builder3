@@ -37,4 +37,3 @@ export function Accordion({ component, data, dispatch, sectionId }: AccordionPro
     </div>
   );
 }
-

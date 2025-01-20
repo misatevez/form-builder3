@@ -25,4 +25,3 @@ export function Container({ component, data, dispatch, sectionId }: ContainerPro
     </div>
   );
 }
-

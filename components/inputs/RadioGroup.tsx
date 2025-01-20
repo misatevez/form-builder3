@@ -29,4 +29,3 @@ export function RadioGroup({ label, value, onChange, validation, options = [] }:
     </div>
   );
 }
-

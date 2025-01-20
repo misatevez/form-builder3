@@ -33,4 +33,3 @@ const Slider: React.FC<SliderProps> = ({ id, label, value, onChange, validation,
 };
 
 export default Slider;
-

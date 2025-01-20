@@ -23,4 +23,3 @@ export function EmailInput({ label, value, onChange, validation }: EmailInputPro
     </div>
   );
 }
-

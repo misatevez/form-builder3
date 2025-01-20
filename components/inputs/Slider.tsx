@@ -30,4 +30,3 @@ export function Slider({ label, value, onChange, validation, min = 0, max = 100,
     </div>
   );
 }
-

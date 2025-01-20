@@ -25,4 +25,3 @@ export function ProgressBar({ label, value, min = 0, max = 100 }: ProgressBarPro
     </div>
   );
 }
-

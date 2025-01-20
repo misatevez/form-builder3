@@ -33,4 +33,3 @@ const Rating: React.FC<RatingProps> = ({ id, label, value, onChange, validation,
 };
 
 export default Rating;
-

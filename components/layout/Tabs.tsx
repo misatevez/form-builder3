@@ -40,4 +40,3 @@ export function Tabs({ component, data, dispatch, sectionId }: TabsProps) {
     </div>
   );
 }
-

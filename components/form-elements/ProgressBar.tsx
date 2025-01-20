@@ -25,4 +25,3 @@ const ProgressBar: React.FC<ProgressBarProps> = ({ id, label, value, min = 0, ma
 };
 
 export default ProgressBar;
-

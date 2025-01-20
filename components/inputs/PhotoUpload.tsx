@@ -177,4 +177,3 @@ export function PhotoUpload({ label, value, onChange, validation }: PhotoUploadP
     </div>
   );
 }
-

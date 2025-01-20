@@ -24,4 +24,3 @@ export function TextArea({ label, value, onChange, validation }: TextAreaProps) 
     </div>
   );
 }
-

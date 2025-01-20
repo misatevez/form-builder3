@@ -20,4 +20,3 @@ const TextArea = ({ placeholder, onChange }) => {
 };
 
 export default TextArea;
-

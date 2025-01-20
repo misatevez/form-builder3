@@ -44,4 +44,3 @@ export function Autocomplete({ label, value, onChange, validation, options }: Au
     </div>
   );
 }
-

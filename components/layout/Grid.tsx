@@ -26,4 +26,3 @@ export function Grid({ component, data, dispatch, sectionId }: GridProps) {
     </div>
   );
 }
-

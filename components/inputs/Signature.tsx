@@ -126,4 +126,3 @@ export function Signature({ label, value, onChange, validation }: SignatureProps
     </div>
   );
 }
-

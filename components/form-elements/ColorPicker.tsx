@@ -34,4 +34,3 @@ const ColorPicker: React.FC<ColorPickerProps> = ({ id, label, value, onChange, v
 };
 
 export default ColorPicker;
-
