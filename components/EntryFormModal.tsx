@@ -17,7 +17,7 @@ import Autocomplete from "./form-elements/Autocomplete"
 import Signature from "./form-elements/Signature"
 import PhotoUpload from "./form-elements/PhotoUpload"
 import DynamicTable from "./form-elements/DynamicTable"
-import { useToast } from "@/components/ui/use-toast"
+import { toast } from "sonner"
 import { useTheme } from "@/utils/theme"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 
@@ -30,12 +30,14 @@ export function EntryFormModal({ isOpen, onClose, form, existingEntry = null, fi
   })
   const { toast } = useToast()
   const { primaryColor } = useTheme()
+  const [localFileName, setLocalFileName] = useState(fileName);
 
   useEffect(() => {
     if (existingEntry && existingEntry.data) {
-      setFormData(existingEntry.data)
+      setFormData(existingEntry.data);
+      setLocalFileName(existingEntry.file_name || "");
     }
-  }, [existingEntry])
+  }, [existingEntry]);
 
   const handleSubmit = async (e, isDraft = false) => {
     e.preventDefault()
@@ -56,21 +58,22 @@ export function EntryFormModal({ isOpen, onClose, form, existingEntry = null, fi
       }
     }
 
-    let result;
+    let result
     const entryData = {
-      form_id: form.id,
       data: formData,
       is_draft: isDraft,
-      file_name: fileName,
+      file_name: localFileName,
     };
-
     if (existingEntry) {
       result = await supabase
         .from("form_entries")
         .update(entryData)
         .eq("id", existingEntry.id)
     } else {
-      result = await supabase.from("form_entries").insert(entryData)
+      result = await supabase.from("form_entries").insert({
+        form_id: form.id,
+        ...entryData,
+      })
     }
 
     const { data, error } = result
