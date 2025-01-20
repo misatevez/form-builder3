@@ -6,11 +6,11 @@
   /* Notion-specific variables */
   --notion-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif,
     "Segoe UI Emoji", "Segoe UI Symbol";
-  --notion-bg: #ffffff;
+  --notion-bg: #f3f4f6;
   --notion-text: #37352f;
   --notion-border: rgba(55, 53, 47, 0.16);
   --notion-hover: rgba(55, 53, 47, 0.08);
-  --notion-input-bg: #fff;
+  --notion-input-bg: #e5e7eb;
   --notion-input-border: rgba(15, 15, 15, 0.1);
 }
 
@@ -84,12 +84,13 @@ body {
 }
 
 .notion-button-primary {
-  background: rgb(0, 0, 0);
+  background: #315755;
   color: white;
 }
 
 .notion-button-primary:hover {
-  background: rgba(0, 0, 0, 0.8);
+  background: #315755;
+  opacity: 0.8;
 }
 
 .notion-card {

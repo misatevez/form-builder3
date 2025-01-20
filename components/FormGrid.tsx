@@ -9,7 +9,8 @@ async function getForms() {
   const { data, error } = await supabase
     .from("forms")
     .select("id, name, data, created_at")
-    .order("created_at", { ascending: false })
+    .order("name", { ascending: true }) // Ordenar por nombre ascendente
+    .order("created_at", { ascending: false }) // Mantener el orden por fecha de creación como secundario
 
   if (error) throw error
   return data

@@ -13,10 +13,15 @@ export function FormTemplates() {
     setActiveTab("constructor")
   }
 
+  // Ordenar las plantillas alfabéticamente por nombre
+  const sortedTemplates = [...templateExamples].sort((a, b) =>
+    a.name.localeCompare(b.name)
+  );
+
   return (
     <div className="p-4 space-y-4 max-w-3xl mx-auto">
       <h2 className="text-2xl font-bold mb-4">Form Templates</h2>
-      {templateExamples.map((template) => (
+      {sortedTemplates.map((template) => (
         <Card key={template.id}>
           <CardHeader>
             <CardTitle>{template.name}</CardTitle>

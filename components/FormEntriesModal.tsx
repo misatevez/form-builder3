@@ -18,12 +18,14 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import { useTheme } from "@/utils/theme"
 
 export function FormEntriesModal({ isOpen, onClose, form }) {
   const [entries, setEntries] = useState([])
   const [entryModalState, setEntryModalState] = useState({ isOpen: false, entry: null })
   const { toast } = useToast()
   const isAuthorized = true // Placeholder: reemplazar con la lógica real de autorización
+  const { primaryColor } = useTheme()
 
   useEffect(() => {
     if (isOpen && form) {
@@ -101,7 +103,12 @@ export function FormEntriesModal({ isOpen, onClose, form }) {
         </DialogHeader>
         <div className="mt-4">
           {entries.length === 0 ? (
-            <p>No hay entradas para este formulario.</p>
+            <div className="text-center py-8 text-gray-500">
+              <p>No hay entradas para este formulario.</p>
+              <Button onClick={handleCreateEntry} className="mt-4" style={{ backgroundColor: primaryColor, color: '#ffffff' }}>
+                Crear nueva entrada
+              </Button>
+            </div>
           ) : (
             <>
               <Table>
@@ -150,7 +157,7 @@ export function FormEntriesModal({ isOpen, onClose, form }) {
                 </TableBody>
               </Table>
               <div className="mt-4 flex justify-center">
-                <Button onClick={handleCreateEntry}>Crear nueva entrada</Button>
+                <Button onClick={handleCreateEntry} style={{ backgroundColor: primaryColor, color: '#ffffff' }}>Crear nueva entrada</Button>
               </div>
             </>
           )}

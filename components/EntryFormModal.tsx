@@ -18,20 +18,21 @@ import Signature from "./form-elements/Signature"
 import PhotoUpload from "./form-elements/PhotoUpload"
 import DynamicTable from "./form-elements/DynamicTable"
 import { useToast } from "@/components/ui/use-toast"
+import { useTheme } from "@/utils/theme"
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 
 export function EntryFormModal({ isOpen, onClose, form, existingEntry = null }) {
   const [formData, setFormData] = useState(() => {
     if (existingEntry && existingEntry.data) {
-      console.log("Cargando datos existentes:", existingEntry.data)
       return existingEntry.data
     }
     return {}
   })
   const { toast } = useToast()
+  const { primaryColor } = useTheme()
 
   useEffect(() => {
     if (existingEntry && existingEntry.data) {
-      console.log("Actualizando datos existentes:", existingEntry.data)
       setFormData(existingEntry.data)
     }
   }, [existingEntry])
@@ -39,7 +40,6 @@ export function EntryFormModal({ isOpen, onClose, form, existingEntry = null }) 
   const handleSubmit = async (e, isDraft = false) => {
     e.preventDefault()
 
-    // Si no es un borrador, validamos los campos requeridos
     if (!isDraft) {
       const missingRequiredFields = form.data.sections
         .flatMap((section) => section.components)
@@ -76,7 +76,6 @@ export function EntryFormModal({ isOpen, onClose, form, existingEntry = null }) 
     const { data, error } = result
 
     if (error) {
-      console.error("Error saving entry:", error)
       toast({
         title: "Error",
         description: "There was a problem saving your entry. Please try again.",
@@ -84,7 +83,6 @@ export function EntryFormModal({ isOpen, onClose, form, existingEntry = null }) 
         duration: 5000,
       })
     } else {
-      console.log("Entry saved successfully:", data)
       toast({
         title: isDraft ? "Draft saved" : "Entry saved",
         description: isDraft ? "Your draft has been saved successfully." : "Your entry has been saved successfully.",
@@ -99,7 +97,6 @@ export function EntryFormModal({ isOpen, onClose, form, existingEntry = null }) 
   }
 
   const renderComponent = (component) => {
-    console.log(`Renderizando componente ${component.id}:`, formData[component.id])
     switch (component.type) {
       case "text":
       case "email":
@@ -239,14 +236,29 @@ export function EntryFormModal({ isOpen, onClose, form, existingEntry = null }) 
         )
       case "dynamicTable":
         return (
-          <DynamicTable
-            id={component.id}
-            label={component.label}
-            value={formData[component.id] || []}
-            onChange={(value) => handleInputChange(component.id, value)}
-            columns={component.columns}
-            validation={component.validation}
-          />
+          <div className="space-y-4">
+            <DynamicTable
+              id={component.id}
+              label={component.label}
+              value={formData[component.id] || []}
+              onChange={(value) => handleInputChange(component.id, value)}
+              columns={component.columns}
+              validation={component.validation}
+            />
+            <div className="flex justify-end">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const newRow = component.columns?.map(() => "") || []
+                  handleInputChange(component.id, [...(formData[component.id] || []), newRow])
+                }}
+              >
+                Añadir entrada
+              </Button>
+            </div>
+          </div>
         )
       default:
         return (
@@ -263,35 +275,51 @@ export function EntryFormModal({ isOpen, onClose, form, existingEntry = null }) 
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
-        <DialogHeader className="sticky top-0 bg-background z-10">
+      <DialogContent className="max-w-[60rem] p-0 h-[85vh] flex flex-col">
+        <DialogHeader className="p-6 pb-4 border-b shrink-0">
           <DialogTitle>
             {existingEntry ? "Editar entrada para: " : "Crear entrada para: "}
             {form?.name}
           </DialogTitle>
         </DialogHeader>
-        <form onSubmit={(e) => handleSubmit(e, false)} className="space-y-4">
-          <div className="space-y-4 mb-4 max-h-[60vh] overflow-y-auto pr-4">
-            {form?.data?.sections?.map((section) => (
-              <div key={section.id} className="space-y-2">
-                <h3 className="font-bold">{section.title}</h3>
-                {section.components.map((component) => (
-                  <div key={component.id}>{renderComponent(component)}</div>
-                ))}
+
+        <form onSubmit={(e) => handleSubmit(e, false)} className="flex flex-col min-h-0 flex-1">
+          <div className="flex-1 min-h-0">
+            <ScrollArea className="h-full">
+              <div className="px-6">
+                <div className="py-6 space-y-8">
+                  {form?.data?.sections?.map((section) => (
+                    <div key={section.id} className="space-y-4">
+                      <h3 className="text-lg font-semibold">{section.title}</h3>
+                      <div className="grid gap-6">
+                        {section.components.map((component) => (
+                          <div key={component.id} className="w-full">
+                            {renderComponent(component)}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
-            ))}
+              <ScrollBar />
+            </ScrollArea>
           </div>
-          <div className="sticky bottom-0 bg-background pt-2 flex justify-end space-x-2">
+
+          <div className="flex items-center justify-end gap-3 p-6 border-t bg-background shrink-0">
             <Button type="button" variant="outline" onClick={onClose}>
               Cancelar
             </Button>
             <Button type="button" variant="secondary" onClick={(e) => handleSubmit(e, true)}>
               Guardar como borrador
             </Button>
-            <Button type="submit">Guardar entrada</Button>
+            <Button type="submit" className="bg-[#2F4858] hover:bg-[#2F4858]/90 text-white">
+              Guardar entrada
+            </Button>
           </div>
         </form>
       </DialogContent>
     </Dialog>
   )
 }
+
