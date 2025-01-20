@@ -21,7 +21,7 @@ import { useToast } from "@/components/ui/use-toast"
 import { useTheme } from "@/utils/theme"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 
-export function EntryFormModal({ isOpen, onClose, form, existingEntry = null }) {
+export function EntryFormModal({ isOpen, onClose, form, existingEntry = null, fileName = "" }) {
   const [formData, setFormData] = useState(() => {
     if (existingEntry && existingEntry.data) {
       return existingEntry.data
@@ -56,26 +56,27 @@ export function EntryFormModal({ isOpen, onClose, form, existingEntry = null }) 
       }
     }
 
-    let result
+    let result;
+    const entryData = {
+      form_id: form.id,
+      data: formData,
+      is_draft: isDraft,
+      file_name: fileName,
+    };
+
     if (existingEntry) {
       result = await supabase
         .from("form_entries")
-        .update({
-          data: formData,
-          is_draft: isDraft,
-        })
+        .update(entryData)
         .eq("id", existingEntry.id)
     } else {
-      result = await supabase.from("form_entries").insert({
-        form_id: form.id,
-        data: formData,
-        is_draft: isDraft,
-      })
+      result = await supabase.from("form_entries").insert(entryData)
     }
 
     const { data, error } = result
 
     if (error) {
+      console.error("Error saving entry:", error)
       toast({
         title: "Error",
         description: "There was a problem saving your entry. Please try again.",
@@ -278,8 +279,7 @@ export function EntryFormModal({ isOpen, onClose, form, existingEntry = null }) 
       <DialogContent className="max-w-[60rem] p-0 h-[85vh] flex flex-col">
         <DialogHeader className="p-6 pb-4 border-b shrink-0">
           <DialogTitle>
-            {existingEntry ? "Editar entrada para: " : "Crear entrada para: "}
-            {form?.name}
+            {existingEntry ? `Editar entrada para: ${fileName}` : `Crear entrada para: ${fileName}`}
           </DialogTitle>
         </DialogHeader>
 
@@ -322,4 +322,3 @@ export function EntryFormModal({ isOpen, onClose, form, existingEntry = null }) 
     </Dialog>
   )
 }
-
