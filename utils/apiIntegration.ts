@@ -26,4 +26,3 @@ export function createAPIAction(url: string, method: 'GET' | 'POST' | 'PUT' | 'D
     }
   };
 }
-

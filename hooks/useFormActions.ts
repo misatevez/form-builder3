@@ -31,4 +31,3 @@ export function useFormActions(dispatch: React.Dispatch<any>) {
     moveComponent,
   };
 }
-

@@ -5,4 +5,3 @@ export function DashboardHeader() {
     </div>
   )
 }
-

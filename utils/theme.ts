@@ -12,13 +12,13 @@ export interface Theme {
 }
 
 export const defaultTheme: Theme = {
-  primaryColor: '#3b82f6',
-  secondaryColor: '#10b981',
-  textColor: '#1f2937',
-  backgroundColor: '#ffffff',
+  primaryColor: '#315755',
+  secondaryColor: '#ffffff',
+  textColor: '#37352f',
+  backgroundColor: '#f3f4f6',
   inputBorderColor: '#d1d5db',
-  inputBackgroundColor: '#f3f4f6',
-  buttonBackgroundColor: '#3b82f6',
+  inputBackgroundColor: '#e5e7eb',
+  buttonBackgroundColor: '#315755',
   buttonTextColor: '#ffffff',
 };
 

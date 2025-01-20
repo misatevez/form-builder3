@@ -37,4 +37,3 @@ export function ConfirmationDialog({ isOpen, onClose, onConfirm, title, message 
     </div>
   );
 }
-

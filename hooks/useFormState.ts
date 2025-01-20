@@ -91,4 +91,3 @@ function formReducer(state: FormState, action: FormAction): FormState {
 export function useFormState(): [FormState, React.Dispatch<FormAction>] {
   return useReducer(formReducer, initialState);
 }
-

@@ -35,4 +35,3 @@ function isFieldComplete(component: FormComponent, value: any): boolean {
       return true;
   }
 }
-

@@ -19,4 +19,3 @@ export function useFormValidation(template: FormTemplate) {
     validateForm
   };
 }
-

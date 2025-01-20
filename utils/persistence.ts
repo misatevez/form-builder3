@@ -15,4 +15,3 @@ export function loadFormData(templateId: string): { [key: string]: any } | null 
   const savedData = localStorage.getItem(`form_data_${templateId}`);
   return savedData ? JSON.parse(savedData) : null;
 }
-

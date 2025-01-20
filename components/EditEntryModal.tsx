@@ -114,4 +114,3 @@ export function EditEntryModal({ isOpen, onClose, form, entry }) {
     </Dialog>
   )
 }
-

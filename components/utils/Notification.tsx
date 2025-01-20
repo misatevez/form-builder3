@@ -33,4 +33,3 @@ export function Notification({ message, type, duration = 3000, onClose }: Notifi
     </div>
   );
 }
-

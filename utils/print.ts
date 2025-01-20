@@ -34,4 +34,3 @@ export function printForm(template: FormTemplate, data: { [key: string]: any }) 
     printWindow.print();
   }
 }
-

@@ -27,4 +27,3 @@ export function modifyForm(template: FormTemplate, modifications: Partial<FormTe
     ...modifications,
   };
 }
-

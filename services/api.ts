@@ -17,4 +17,3 @@ export const api = {
     throw new Error('Not implemented');
   }
 };
-

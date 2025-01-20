@@ -132,4 +132,3 @@ export const RenderComponent = memo(
 )
 
 export default RenderComponent
-

@@ -20,4 +20,3 @@ export async function saveFormToSupabase(form: FormTemplate) {
 
   return data
 }
-

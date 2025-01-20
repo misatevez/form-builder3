@@ -40,4 +40,3 @@ export function loadDraft(templateId: string): { [key: string]: any } | null {
   const savedData = localStorage.getItem(`form_${templateId}_draft`);
   return savedData ? JSON.parse(savedData) : null;
 }
-

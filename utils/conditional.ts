@@ -19,4 +19,3 @@ export function evaluateConditional(data: { [key: string]: any }, rules?: Condit
 
   return true;
 }
-

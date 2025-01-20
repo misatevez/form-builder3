@@ -28,4 +28,3 @@ export function getChangeHistory(templateId: string): ChangeHistoryEntry[] {
   const historyKey = `form_${templateId}_history`;
   return JSON.parse(localStorage.getItem(historyKey) || '[]');
 }
-

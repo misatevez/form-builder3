@@ -123,4 +123,3 @@ export const PVCommissioningForm: React.FC = () => {
     </div>
   );
 };
-

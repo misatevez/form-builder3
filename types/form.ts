@@ -116,4 +116,3 @@ export const INITIAL_TEMPLATE: FormTemplate = {
   ],
   theme: {},
 }
-

@@ -38,4 +38,3 @@ export function validateField(value: any, rules: ValidationRule[]): string | nul
   }
   return null;
 }
-

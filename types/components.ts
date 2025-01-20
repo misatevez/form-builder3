@@ -24,4 +24,3 @@ export interface FormBuilderProps {
 export interface LivePreviewProps {
   isReadOnly?: boolean;
 }
-

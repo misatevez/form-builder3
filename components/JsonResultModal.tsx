@@ -30,4 +30,3 @@ export const JsonResultModal: React.FC<JsonResultModalProps> = ({ isOpen, onClos
     </div>
   );
 };
-

@@ -22,4 +22,3 @@ export function useAutoSave(template: FormTemplate, data: FormData) {
     };
   }, [template, data]);
 }
-

@@ -22,4 +22,3 @@ function evaluateExpression(expression: string, data: { [key: string]: any }): n
   // Use a safe evaluation method (you might want to use a proper expression parser library for production)
   return Function(`'use strict'; return (${evaluatedExpression})`)();
 }
-

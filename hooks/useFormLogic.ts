@@ -179,4 +179,3 @@ export function useFormLogic(initialTemplate: FormTemplate) {
     moveComponentBetweenSections,
   };
 }
-

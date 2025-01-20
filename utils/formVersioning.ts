@@ -26,4 +26,3 @@ export function getFormVersion(templateId: string, version: number): VersionedFo
   const versions = getFormVersions(templateId);
   return versions.find(v => v.version === version) || null;
 }
-

@@ -36,4 +36,3 @@ export function exportToJSON(template: FormTemplate, data: { [key: string]: any 
   link.download = `${template.name}.json`;
   link.click();
 }
-

@@ -147,4 +147,3 @@ export const Section = React.memo(function Section({ section, index, setActivePr
     </Draggable>
   )
 })
-
