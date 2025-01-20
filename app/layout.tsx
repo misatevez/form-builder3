@@ -1,7 +1,6 @@
 "use client";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { Footer } from "@/components/layout/Footer";
 import { Navbar } from "@/components/Navbar";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeContext, defaultTheme } from "@/utils/theme";
@@ -21,7 +20,6 @@ export default function RootLayout({
           <Navbar />
           <main className="min-h-screen bg-background">{children}</main>
           <Toaster />
-					<Footer />
         </ThemeContext.Provider>
       </body>
     </html>

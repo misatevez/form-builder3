@@ -19,13 +19,10 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { useTheme } from "@/utils/theme"
-import { Input } from "@/components/ui/input"
 
 export function FormEntriesModal({ isOpen, onClose, form }) {
   const [entries, setEntries] = useState([])
   const [entryModalState, setEntryModalState] = useState({ isOpen: false, entry: null })
-  const [fileNameModalOpen, setFileNameModalOpen] = useState(false);
-  const [newEntryFileName, setNewEntryFileName] = useState("");
   const { toast } = useToast()
   const isAuthorized = true // Placeholder: reemplazar con la lógica real de autorización
   const { primaryColor } = useTheme()
@@ -55,18 +52,8 @@ export function FormEntriesModal({ isOpen, onClose, form }) {
   }
 
   const handleCreateEntry = () => {
-    setFileNameModalOpen(true);
+    setEntryModalState({ isOpen: true, entry: null })
   }
-
-  const handleCreateEntryWithFileName = () => {
-    setFileNameModalOpen(false);
-    setEntryModalState({ isOpen: true, entry: null, fileName: newEntryFileName });
-  };
-
-  const handleCancelCreateEntry = () => {
-    setFileNameModalOpen(false);
-    setNewEntryFileName("");
-  };
 
   const handleDeleteForm = async () => {
     try {
@@ -127,7 +114,7 @@ export function FormEntriesModal({ isOpen, onClose, form }) {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Nombre del archivo</TableHead>
+                    <TableHead>ID</TableHead>
                     <TableHead>Estado</TableHead>
                     <TableHead>Fecha de creación</TableHead>
                     <TableHead>Acciones</TableHead>
@@ -136,7 +123,7 @@ export function FormEntriesModal({ isOpen, onClose, form }) {
                 <TableBody>
                   {entries.map((entry) => (
                     <TableRow key={entry.id}>
-                      <TableCell>{entry.file_name}</TableCell>
+                      <TableCell>{entry.id}</TableCell>
                       <TableCell>{entry.is_draft ? "Borrador" : "Publicado"}</TableCell>
                       <TableCell>{new Date(entry.created_at).toLocaleString()}</TableCell>
                       <TableCell>
@@ -185,32 +172,8 @@ export function FormEntriesModal({ isOpen, onClose, form }) {
           }}
           form={form}
           existingEntry={entryModalState.entry}
-          fileName={entryModalState.fileName}
         />
       )}
-      <Dialog open={fileNameModalOpen} onOpenChange={setFileNameModalOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Nombre del archivo</DialogTitle>
-          </DialogHeader>
-          <div className="mb-4">
-            <Input
-              type="text"
-              placeholder="Nombre del archivo"
-              value={newEntryFileName}
-              onChange={(e) => setNewEntryFileName(e.target.value)}
-            />
-          </div>
-          <div className="flex justify-end space-x-2">
-            <Button type="button" variant="outline" onClick={handleCancelCreateEntry}>
-              Cancelar
-            </Button>
-            <Button type="button" onClick={handleCreateEntryWithFileName}>
-              Crear
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </Dialog>
   )
 }

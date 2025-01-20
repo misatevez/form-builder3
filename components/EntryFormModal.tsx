@@ -21,7 +21,7 @@ import { toast } from "sonner"
 import { useTheme } from "@/utils/theme"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 
-export function EntryFormModal({ isOpen, onClose, form, existingEntry = null, fileName = "" }) {
+export function EntryFormModal({ isOpen, onClose, form, existingEntry = null }) {
   const [formData, setFormData] = useState(() => {
     if (existingEntry && existingEntry.data) {
       return existingEntry.data
@@ -59,27 +59,37 @@ export function EntryFormModal({ isOpen, onClose, form, existingEntry = null, fi
     }
 
     let result
+<<<<<<< HEAD
     const entryData = {
       data: formData,
       is_draft: isDraft,
       file_name: localFileName,
     };
+=======
+>>>>>>> parent of 248c3b1 (cambios esteticos generales)
     if (existingEntry) {
       result = await supabase
         .from("form_entries")
-        .update(entryData)
+        .update({
+          data: formData,
+          is_draft: isDraft,
+        })
         .eq("id", existingEntry.id)
     } else {
       result = await supabase.from("form_entries").insert({
         form_id: form.id,
+<<<<<<< HEAD
         ...entryData,
+=======
+        data: formData,
+        is_draft: isDraft,
+>>>>>>> parent of 248c3b1 (cambios esteticos generales)
       })
     }
 
     const { data, error } = result
 
     if (error) {
-      console.error("Error saving entry:", error)
       toast({
         title: "Error",
         description: "There was a problem saving your entry. Please try again.",
@@ -282,7 +292,8 @@ export function EntryFormModal({ isOpen, onClose, form, existingEntry = null, fi
       <DialogContent className="max-w-[60rem] p-0 h-[85vh] flex flex-col">
         <DialogHeader className="p-6 pb-4 border-b shrink-0">
           <DialogTitle>
-            {existingEntry ? `Editar entrada para: ${fileName}` : `Crear entrada para: ${fileName}`}
+            {existingEntry ? "Editar entrada para: " : "Crear entrada para: "}
+            {form?.name}
           </DialogTitle>
         </DialogHeader>
 
@@ -325,3 +336,4 @@ export function EntryFormModal({ isOpen, onClose, form, existingEntry = null, fi
     </Dialog>
   )
 }
+
