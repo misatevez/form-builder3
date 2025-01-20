@@ -12,7 +12,7 @@ export interface Theme {
 }
 
 export const defaultTheme: Theme = {
-  primaryColor: '#315755',
+  primaryColor: '#003937',
   secondaryColor: '#ffffff',
   textColor: '#37352f',
   backgroundColor: '#f3f4f6',
