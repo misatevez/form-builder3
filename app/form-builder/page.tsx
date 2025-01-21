@@ -1,8 +1,7 @@
 import { FormBuilder } from "@/components/form-builder"
 
 export const metadata = {
-  title: "Form Builder | FormBuilder",
-  description: "Create and edit forms",
+  title: "Greenenergy",
 }
 
 export default function FormBuilderPage() {

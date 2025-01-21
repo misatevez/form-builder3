@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { useTheme } from "@/utils/theme"
 import { EntryFormModal } from "./EntryFormModal"
+import { Edit, Trash2 } from "lucide-react"
 
 export function FormEntriesModal({ isOpen, onClose, form }) {
   const [entries, setEntries] = useState([])
@@ -119,7 +120,7 @@ export function FormEntriesModal({ isOpen, onClose, form }) {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Nombre</TableHead>
+                    <TableHead>Nombre de archivo</TableHead>
                     <TableHead>Estado</TableHead>
                     <TableHead>Fecha de creación</TableHead>
                     <TableHead>Acciones</TableHead>
@@ -132,13 +133,15 @@ export function FormEntriesModal({ isOpen, onClose, form }) {
                       <TableCell>{entry.is_draft ? "Borrador" : "Publicado"}</TableCell>
                       <TableCell>{new Date(entry.created_at).toLocaleString()}</TableCell>
                       <TableCell>
-                        <Button onClick={() => handleEditEntry(entry)} className="mr-2">
-                          Editar
+                        <Button onClick={() => handleEditEntry(entry)} variant="ghost" size="icon" className="mr-2">
+                          <Edit className="h-4 w-4" />
                         </Button>
                         {isAuthorized && (
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
-                              <Button variant="destructive">Eliminar</Button>
+                              <Button variant="ghost" size="icon" className="text-destructive">
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
                             </AlertDialogTrigger>
                             <AlertDialogContent>
                               <AlertDialogHeader>
