@@ -120,15 +120,31 @@ export function FormEntriesModal({ isOpen, onClose, form }) {
       doc.setFontSize(18)
       doc.text(`Entrada: ${entry.file_name}`, 20, 20)
 
+      // Add form name
+      doc.setFontSize(14)
+      doc.text(`Formulario: ${form.name}`, 20, 30)
+
       // Add content
       doc.setFontSize(12)
       let yPos = 40
-      Object.entries(entry.data).forEach(([key, value]) => {
-        const text = `${key}: ${value}`
-        console.log("Adding to PDF:", text)
-        doc.text(text, 20, yPos)
-        yPos += 10
-      })
+
+      if (entry.data && Object.keys(entry.data).length > 0) {
+        Object.entries(entry.data).forEach(([key, value]) => {
+          // Ensure the text fits within the page width
+          const text = `${key}: ${value}`
+          const textLines = doc.splitTextToSize(text, 180)
+          doc.text(textLines, 20, yPos)
+          yPos += 10 * textLines.length
+
+          // Add a new page if we're near the bottom
+          if (yPos > 280) {
+            doc.addPage()
+            yPos = 20
+          }
+        })
+      } else {
+        doc.text("No hay datos disponibles para esta entrada.", 20, yPos)
+      }
 
       // Generate PDF as data URL
       const pdfDataUri = doc.output("datauristring")
