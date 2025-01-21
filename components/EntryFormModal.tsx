@@ -30,6 +30,7 @@ interface EntryFormModalProps {
 }
 
 export function EntryFormModal({ isOpen, onClose, form, existingEntry = null, fileName = "" }: EntryFormModalProps) {
+	console.log(fileName);
   const [formData, setFormData] = useState(() => {
     if (existingEntry && existingEntry.data) {
       return existingEntry.data
@@ -293,7 +294,7 @@ export function EntryFormModal({ isOpen, onClose, form, existingEntry = null, fi
         <DialogHeader className="p-6 pb-4 border-b shrink-0">
           <DialogTitle>
             {existingEntry ? "Editar entrada para: " : "Crear entrada para: "}
-            {form?.name}
+            {form?.name} : {fileName}
           </DialogTitle>
         </DialogHeader>
 

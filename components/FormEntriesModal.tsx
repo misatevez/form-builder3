@@ -21,11 +21,14 @@ import {
 import { useTheme } from "@/utils/theme"
 import { EntryFormModal } from "./EntryFormModal"
 import { Edit, Trash2 } from "lucide-react"
+import { Input } from "@/components/ui/input"
 
 export function FormEntriesModal({ isOpen, onClose, form }) {
   const [entries, setEntries] = useState([])
   const [entryModalState, setEntryModalState] = useState({ isOpen: false, entry: null, fileName: "" })
-  const [createModalState, setCreateModalState] = useState({ isOpen: false, fileName: "" });
+  const [createModalState, setCreateModalState] = useState({ isOpen: false, fileName: "" })
+  const [isCreateAlertOpen, setIsCreateAlertOpen] = useState(false)
+  const [newFileName, setNewFileName] = useState("")
   const { toast } = useToast()
   const isAuthorized = true // Placeholder: reemplazar con la lógica real de autorización
   const { primaryColor } = useTheme()
@@ -51,15 +54,20 @@ export function FormEntriesModal({ isOpen, onClose, form }) {
   }
 
   const handleEditEntry = (entry) => {
-    setEntryModalState({ isOpen: true, entry, fileName: entry.file_name });
+    setEntryModalState({ isOpen: true, entry, fileName: entry.file_name })
   }
 
   const handleCreateEntry = () => {
-    const fileName = prompt("Ingresa el nombre del archivo para la nueva entrada:");
-    if (fileName) {
-      setCreateModalState({ isOpen: true, fileName });
+    setIsCreateAlertOpen(true)
+  }
+
+  const handleConfirmCreate = () => {
+    if (newFileName) {
+      setCreateModalState({ isOpen: true, fileName: newFileName })
+      setIsCreateAlertOpen(false)
+      setNewFileName("")
     }
-  };
+  }
 
   const handleDeleteForm = async () => {
     try {
@@ -102,75 +110,84 @@ export function FormEntriesModal({ isOpen, onClose, form }) {
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Entradas para: {form?.name}</DialogTitle>
-        </DialogHeader>
-        <div className="mt-4">
-          {entries.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              <p>No hay entradas para este formulario.</p>
-              <Button onClick={handleCreateEntry} className="mt-4" style={{ backgroundColor: primaryColor, color: '#ffffff' }}>
-                Crear nueva entrada
-              </Button>
-            </div>
-          ) : (
-            <>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Nombre de archivo</TableHead>
-                    <TableHead>Estado</TableHead>
-                    <TableHead>Fecha de creación</TableHead>
-                    <TableHead>Acciones</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {entries.map((entry) => (
-                    <TableRow key={entry.id}>
-                      <TableCell>{entry.file_name}</TableCell>
-                      <TableCell>{entry.is_draft ? "Borrador" : "Publicado"}</TableCell>
-                      <TableCell>{new Date(entry.created_at).toLocaleString()}</TableCell>
-                      <TableCell>
-                        <Button onClick={() => handleEditEntry(entry)} variant="ghost" size="icon" className="mr-2">
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        {isAuthorized && (
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button variant="ghost" size="icon" className="text-destructive">
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Esta acción no se puede deshacer. Se eliminará permanentemente esta entrada.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => handleDeleteEntry(entry.id)}>
-                                  Eliminar
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-              <div className="mt-4 flex justify-center">
-                <Button onClick={handleCreateEntry} style={{ backgroundColor: primaryColor, color: '#ffffff' }}>Crear nueva entrada</Button>
+    <>
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Entradas para: {form?.name}</DialogTitle>
+          </DialogHeader>
+          <div className="mt-4">
+            {entries.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <p>No hay entradas para este formulario.</p>
+                <Button
+                  onClick={handleCreateEntry}
+                  className="mt-4"
+                  style={{ backgroundColor: primaryColor, color: "#ffffff" }}
+                >
+                  Crear nueva entrada
+                </Button>
               </div>
-            </>
-          )}
-        </div>
-      </DialogContent>
+            ) : (
+              <>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Nombre de archivo</TableHead>
+                      <TableHead>Estado</TableHead>
+                      <TableHead>Fecha de creación</TableHead>
+                      <TableHead>Acciones</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {entries.map((entry) => (
+                      <TableRow key={entry.id}>
+                        <TableCell>{entry.file_name}</TableCell>
+                        <TableCell>{entry.is_draft ? "Borrador" : "Publicado"}</TableCell>
+                        <TableCell>{new Date(entry.created_at).toLocaleString()}</TableCell>
+                        <TableCell>
+                          <Button onClick={() => handleEditEntry(entry)} variant="ghost" size="icon" className="mr-2">
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          {isAuthorized && (
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button variant="ghost" size="icon" className="text-destructive">
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Esta acción no se puede deshacer. Se eliminará permanentemente esta entrada.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                  <AlertDialogAction onClick={() => handleDeleteEntry(entry.id)}>
+                                    Eliminar
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+                <div className="mt-4 flex justify-center">
+                  <Button onClick={handleCreateEntry} style={{ backgroundColor: primaryColor, color: "#ffffff" }}>
+                    Crear nueva entrada
+                  </Button>
+                </div>
+              </>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {entryModalState.isOpen && (
         <EditEntryModal
           isOpen={entryModalState.isOpen}
@@ -183,17 +200,42 @@ export function FormEntriesModal({ isOpen, onClose, form }) {
           fileName={entryModalState.fileName}
         />
       )}
+
       {createModalState.isOpen && (
         <EntryFormModal
           isOpen={createModalState.isOpen}
           onClose={() => {
-            setCreateModalState({ isOpen: false, fileName: "" });
-            fetchEntries();
+            setCreateModalState({ isOpen: false, fileName: "" })
+            fetchEntries()
           }}
           form={form}
           fileName={createModalState.fileName}
         />
       )}
-    </Dialog>
+
+      <AlertDialog open={isCreateAlertOpen} onOpenChange={setIsCreateAlertOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Crear nueva entrada</AlertDialogTitle>
+            <AlertDialogDescription>
+              Por favor, ingresa el nombre del archivo para la nueva entrada.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="mt-4">
+            <Input
+              type="text"
+              value={newFileName}
+              onChange={(e) => setNewFileName(e.target.value)}
+              placeholder="Nombre del archivo"
+            />
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setIsCreateAlertOpen(false)}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmCreate}>Crear</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   )
 }
+

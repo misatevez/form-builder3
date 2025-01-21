@@ -30,6 +30,7 @@ interface EntryFormModalProps {
 }
 
 export function EditEntryModal({ isOpen, onClose, form, entry, fileName = "" }: EntryFormModalProps) {
+	console.log(fileName);
   const [formData, setFormData] = useState(entry?.data || {})
   const { toast } = useToast()
   const { primaryColor } = useTheme()
@@ -274,7 +275,7 @@ export function EditEntryModal({ isOpen, onClose, form, entry, fileName = "" }: 
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-[60rem] p-0 h-[85vh] flex flex-col">
         <DialogHeader className="p-6 pb-4 border-b shrink-0">
-          <DialogTitle>Editar entrada para: {form?.name}</DialogTitle>
+          <DialogTitle>Editar entrada para: {form?.name} : {fileName} </DialogTitle>
         </DialogHeader>
         <form onSubmit={(e) => handleSubmit(e, false)} className="flex flex-col min-h-0 flex-1">
           <div className="flex-1 min-h-0">
