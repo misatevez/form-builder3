@@ -1,19 +1,24 @@
-// Servicios de API centralizados
-import { FormTemplate, FormData } from '../types';
+import { supabase } from "../lib/supabase"
+import type { FormTemplate } from "../types/form"
 
 export const api = {
-  async saveForm(template: FormTemplate, data: FormData): Promise<void> {
-    // Implementar lógica de guardado
-    console.log('Saving form:', template, data);
-  },
+  saveForm: async (template: FormTemplate): Promise<FormTemplate | null> => {
+    console.log("Intentando guardar el formulario en Supabase:", template)
+    try {
+      const { data, error } = await supabase.from("forms").upsert({ id: template.id, data: template }).select().single()
 
-  async loadForm(id: string): Promise<FormTemplate> {
-    // Implementar lógica de carga
-    throw new Error('Not implemented');
-  },
+      if (error) {
+        console.error("Error de Supabase al guardar el formulario:", error)
+        throw error
+      }
 
-  async exportForm(template: FormTemplate, format: 'pdf' | 'excel' | 'json'): Promise<Blob> {
-    // Implementar lógica de exportación
-    throw new Error('Not implemented');
-  }
-};
+      console.log("Formulario guardado exitosamente en Supabase:", data)
+      return data as FormTemplate
+    } catch (error) {
+      console.error("Error al guardar el formulario en Supabase:", error)
+      throw error
+    }
+  },
+  // ... otras funciones de la API
+}
+

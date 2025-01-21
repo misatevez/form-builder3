@@ -1,0 +1,43 @@
+import {
+  TextIcon,
+  HashIcon,
+  MailIcon,
+  AlignLeftIcon,
+  ListIcon,
+  ToggleLeftIcon,
+  CalendarIcon,
+  ClockIcon,
+  SlidersHorizontal,
+  BarChartIcon,
+  StarIcon,
+  PaletteIcon,
+  TypeIcon,
+  SearchIcon,
+  PenToolIcon,
+  ImageIcon,
+  TableIcon,
+} from "lucide-react"
+import type { ComponentType } from "../types/form"
+
+export const componentIcons: Record<ComponentType, React.ComponentType> = {
+  text: TextIcon,
+  number: HashIcon,
+  email: MailIcon,
+  textarea: AlignLeftIcon,
+  select: ListIcon,
+  checkbox: ToggleLeftIcon,
+  radio: ToggleLeftIcon,
+  switch: ToggleLeftIcon,
+  date: CalendarIcon,
+  time: ClockIcon,
+  slider: SlidersHorizontal,
+  progress: BarChartIcon,
+  rating: StarIcon,
+  color: PaletteIcon,
+  richtext: TypeIcon,
+  autocomplete: SearchIcon,
+  signature: PenToolIcon,
+  photo: ImageIcon,
+  dynamicTable: TableIcon,
+}
+

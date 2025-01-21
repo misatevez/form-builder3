@@ -5,12 +5,12 @@ import { ComponentProperties } from "./ComponentProperties"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 export function PropertiesPanel() {
-  const { selectedElementId, activePropertiesTab, setActivePropertiesTab } = useFormContext()
+  const { selectedElementId } = useFormContext()
 
   return (
     <div className="p-4">
       <h2 className="text-lg font-semibold mb-4">Properties</h2>
-      <Tabs value={activePropertiesTab} onValueChange={(value) => setActivePropertiesTab(value as "element" | "form")}>
+      <Tabs defaultValue={selectedElementId === "form" ? "form" : "element"}>
         <TabsList className="w-full">
           <TabsTrigger value="element" className="flex-1">
             Element
@@ -29,3 +29,4 @@ export function PropertiesPanel() {
     </div>
   )
 }
+

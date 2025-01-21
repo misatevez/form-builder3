@@ -322,4 +322,3 @@ export function FormEntriesModal({ isOpen, onClose, form }) {
     </>
   )
 }
-

@@ -17,4 +17,3 @@ export async function FormGridServer() {
 
   return <FormGridClient forms={forms} />
 }
-
