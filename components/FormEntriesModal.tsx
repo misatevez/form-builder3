@@ -130,8 +130,20 @@ export function FormEntriesModal({ isOpen, onClose, form }) {
 
       if (entry.data && Object.keys(entry.data).length > 0) {
         Object.entries(entry.data).forEach(([key, value]) => {
+          // Format the key for better readability
+          const formattedKey = key.replace(/-/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())
+
+          // Format the value (handle date strings)
+          let formattedValue = value
+          if (value && typeof value === "string" && value.includes("T")) {
+            const date = new Date(value)
+            if (!isNaN(date.getTime())) {
+              formattedValue = date.toLocaleString()
+            }
+          }
+
           // Ensure the text fits within the page width
-          const text = `${key}: ${value}`
+          const text = `${formattedKey}: ${formattedValue}`
           const textLines = doc.splitTextToSize(text, 180)
           doc.text(textLines, 20, yPos)
           yPos += 10 * textLines.length
@@ -145,6 +157,15 @@ export function FormEntriesModal({ isOpen, onClose, form }) {
       } else {
         doc.text("No hay datos disponibles para esta entrada.", 20, yPos)
       }
+
+      // Add metadata
+      yPos += 20
+      doc.setFontSize(10)
+      doc.text(`ID de la entrada: ${entry.id}`, 20, yPos)
+      yPos += 10
+      doc.text(`Fecha de creación: ${new Date(entry.created_at).toLocaleString()}`, 20, yPos)
+      yPos += 10
+      doc.text(`Estado: ${entry.is_draft ? "Borrador" : "Publicado"}`, 20, yPos)
 
       // Generate PDF as data URL
       const pdfDataUri = doc.output("datauristring")
