@@ -20,8 +20,10 @@ import {
 } from "@/components/ui/alert-dialog"
 import { useTheme } from "@/utils/theme"
 import { EntryFormModal } from "./EntryFormModal"
-import { Edit, Trash2 } from "lucide-react"
+import { Edit, Trash2, FileText } from "lucide-react"
 import { Input } from "@/components/ui/input"
+import jsPDF from "jspdf"
+import { saveAs } from "file-saver"
 
 export function FormEntriesModal({ isOpen, onClose, form }) {
   const [entries, setEntries] = useState([])
@@ -109,6 +111,48 @@ export function FormEntriesModal({ isOpen, onClose, form }) {
     }
   }
 
+  const handleExportToPDF = (entry) => {
+    console.log("Exporting entry to PDF:", entry)
+    try {
+      const doc = new jsPDF()
+
+      // Add title
+      doc.setFontSize(18)
+      doc.text(`Entrada: ${entry.file_name}`, 20, 20)
+
+      // Add content
+      doc.setFontSize(12)
+      let yPos = 40
+      Object.entries(entry.data).forEach(([key, value]) => {
+        const text = `${key}: ${value}`
+        console.log("Adding to PDF:", text)
+        doc.text(text, 20, yPos)
+        yPos += 10
+      })
+
+      // Generate PDF as data URL
+      const pdfDataUri = doc.output("datauristring")
+
+      // Open PDF in a new tab
+      window.open(pdfDataUri, "_blank")
+
+      console.log("PDF generated and opened in a new tab")
+      toast({
+        title: "PDF exportado",
+        description: "El PDF ha sido generado y abierto en una nueva pestaña.",
+        duration: 3000,
+      })
+    } catch (error) {
+      console.error("Error generating PDF:", error)
+      toast({
+        title: "Error al exportar PDF",
+        description: "Hubo un problema al generar el PDF. Por favor, intente de nuevo.",
+        variant: "destructive",
+        duration: 5000,
+      })
+    }
+  }
+
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
@@ -148,6 +192,9 @@ export function FormEntriesModal({ isOpen, onClose, form }) {
                         <TableCell>
                           <Button onClick={() => handleEditEntry(entry)} variant="ghost" size="icon" className="mr-2">
                             <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button onClick={() => handleExportToPDF(entry)} variant="ghost" size="icon" className="mr-2">
+                            <FileText className="h-4 w-4" />
                           </Button>
                           {isAuthorized && (
                             <AlertDialog>
