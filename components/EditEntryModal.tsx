@@ -20,6 +20,7 @@ import DynamicTable from "./form-elements/DynamicTable"
 import { useToast } from "@/components/ui/use-toast"
 import { useTheme } from "@/utils/theme"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
+import "./styles/edit-entry-modal.css"
 
 interface EntryFormModalProps {
   isOpen: boolean
@@ -492,8 +493,8 @@ export function EditEntryModal({ isOpen, onClose, form, entry, fileName = "" }: 
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-[80rem] p-0 h-[85vh] flex flex-col">
+    <Dialog open={isOpen} onOpenChange={onClose} className="edit-entry-modal-content">
+      <DialogContent className="max-w-[95vw] md:max-w-[80rem] p-0 h-[90vh] md:h-[85vh] flex flex-col overflow-hidden">
         <DialogHeader className="p-6 pb-4 border-b shrink-0">
           <DialogTitle>
             Editar entrada para: {form?.name} : {fileName}{" "}
@@ -502,8 +503,8 @@ export function EditEntryModal({ isOpen, onClose, form, entry, fileName = "" }: 
         <form onSubmit={(e) => handleSubmit(e, false)} className="flex flex-col min-h-0 flex-1">
           <div className="flex-1 min-h-0">
             <ScrollArea className="h-full">
-              <div className="px-6">
-                <div className="py-6 space-y-8">
+              <div className="px-2 md:px-6">
+                <div className="py-6 space-y-8 w-full overflow-hidden">
                   {form?.data?.sections?.map((section) => (
                     <div key={section.id} className="space-y-4">
                       <h3 className="text-lg font-semibold">{section.title}</h3>

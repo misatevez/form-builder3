@@ -1,0 +1,24 @@
+.edit-entry-modal-content {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+.edit-entry-modal-content input,
+.edit-entry-modal-content select,
+.edit-entry-modal-content textarea {
+  max-width: 100%;
+  width: 100%;
+}
+
+@media (max-width: 640px) {
+  .edit-entry-modal-content .field-label {
+    font-size: 14px;
+  }
+
+  .edit-entry-modal-content input,
+  .edit-entry-modal-content select,
+  .edit-entry-modal-content textarea {
+    font-size: 16px; /* Prevent zoom on focus in iOS */
+  }
+}
+

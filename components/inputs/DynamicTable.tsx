@@ -1,151 +1,168 @@
-import React, { useState } from 'react';
-import { FormComponent, TableColumn, TableValidation, TableActions } from '../../types/form';
-import { Plus, Trash2, ArrowUp, ArrowDown } from 'lucide-react';
-import { RenderComponent } from '../RenderComponent';
+"use client"
 
-interface DynamicTableProps extends FormComponent {
-  value: any[][];
-  onChange: (value: any[][]) => void;
-  columns: TableColumn[];
-  validation: TableValidation;
-  actions: TableActions;
+import { useState, useEffect } from "react"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
+import { cn } from "@/lib/utils"
+import { Card } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Trash2 } from "lucide-react"
+
+interface Column {
+  label: string
+  key?: string
 }
 
-export function DynamicTable({
-  label,
-  value,
-  onChange,
-  validation,
-  columns,
-  actions,
-}: DynamicTableProps) {
-  const [currentPage, setCurrentPage] = useState(1);
-  const rowsPerPage = 10;
+interface DynamicTableProps {
+  id: string
+  label: string
+  value: any[][]
+  onChange: (value: any[][]) => void
+  columns: Column[]
+  validation?: {
+    required?: boolean
+  }
+}
 
-  const addRow = () => {
-    const newRow = columns.map(() => '');
-    onChange([...value, newRow]);
-  };
+export default function DynamicTable({ id, label, value = [], onChange, columns, validation }: DynamicTableProps) {
+  const [isMobile, setIsMobile] = useState(false)
 
-  const removeRow = (index: number) => {
-    const newValue = [...value];
-    newValue.splice(index, 1);
-    onChange(newValue);
-  };
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+    checkMobile()
+    window.addEventListener("resize", checkMobile)
+    return () => window.removeEventListener("resize", checkMobile)
+  }, [])
 
-  const updateCell = (rowIndex: number, colIndex: number, newValue: any) => {
-    const newData = [...value];
-    newData[rowIndex][colIndex] = newValue;
-    onChange(newData);
-  };
+  const handleCellChange = (rowIndex: number, columnIndex: number, cellValue: string) => {
+    const newValue = [...value]
+    if (!newValue[rowIndex]) {
+      newValue[rowIndex] = columns.map(() => "")
+    }
+    newValue[rowIndex][columnIndex] = cellValue
+    onChange(newValue)
+  }
 
-  const moveRow = (fromIndex: number, toIndex: number) => {
-    const newValue = [...value];
-    const [movedRow] = newValue.splice(fromIndex, 1);
-    newValue.splice(toIndex, 0, movedRow);
-    onChange(newValue);
-  };
+  const handleDeleteRow = (rowIndex: number) => {
+    const newValue = value.filter((_, index) => index !== rowIndex)
+    onChange(newValue)
+  }
 
-  const startIndex = (currentPage - 1) * rowsPerPage;
-  const endIndex = startIndex + rowsPerPage;
-  const displayedRows = value.slice(startIndex, endIndex);
+  if (isMobile) {
+    return (
+      <div className="w-full space-y-2">
+        <label
+          htmlFor={id}
+          className={cn("text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70", {
+            "text-destructive": validation?.required,
+          })}
+        >
+          {label} {validation?.required && <span className="text-destructive">*</span>}
+        </label>
+        <div className="space-y-4">
+          {value.map((row, rowIndex) => (
+            <Card key={rowIndex} className="p-4">
+              <div className="space-y-3">
+                {columns.map((column, columnIndex) => (
+                  <div key={columnIndex} className="space-y-1.5">
+                    <label className="text-xs font-medium text-muted-foreground">
+                      {column.label}
+                      {validation?.required && <span className="text-destructive ml-1">*</span>}
+                    </label>
+                    <input
+                      type="text"
+                      value={row[columnIndex] || ""}
+                      onChange={(e) => handleCellChange(rowIndex, columnIndex, e.target.value)}
+                      className="w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    />
+                  </div>
+                ))}
+                <div className="pt-2">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="text-destructive hover:text-destructive/90 hover:bg-destructive/10 w-full"
+                    onClick={() => handleDeleteRow(rowIndex)}
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Eliminar fila
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <div className="mb-4">
-      <label className="block mb-2 font-bold">
-        {label}
-        {validation.required && <span className="text-red-500 ml-1">*</span>}
+    <div className="w-full space-y-2">
+      <label
+        htmlFor={id}
+        className={cn("text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70", {
+          "text-destructive": validation?.required,
+        })}
+      >
+        {label} {validation?.required && <span className="text-destructive">*</span>}
       </label>
-      <table className="w-full border-collapse border border-gray-300">
-        <thead>
-          <tr>
-            {columns.map((column, index) => (
-              <th key={index} className="border border-gray-300 p-2 bg-gray-100">
-                {column.label}
-              </th>
-            ))}
-            {actions.canDelete && <th className="border border-gray-300 p-2 bg-gray-100">Actions</th>}
-          </tr>
-        </thead>
-        <tbody>
-          {displayedRows.map((row, rowIndex) => (
-            <tr key={rowIndex}>
-              {columns.map((column, colIndex) => (
-                <td key={colIndex} className="border border-gray-300 p-2">
-                  <RenderComponent
-                    component={{
-                      ...column,
-                      id: `${label}-${rowIndex}-${colIndex}`,
-                      value: row[colIndex],
-                      onChange: (newValue) => updateCell(rowIndex + startIndex, colIndex, newValue),
-                    }}
-                    data={{}}
-                    dispatch={() => {}}
-                    sectionId=""
-                  />
-                </td>
-              ))}
-              {actions.canDelete && (
-                <td className="border border-gray-300 p-2">
-                  <button
-                    onClick={() => removeRow(rowIndex + startIndex)}
-                    className="p-1 bg-red-500 text-white rounded hover:bg-red-600"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                  {actions.canReorder && (
-                    <>
-                      <button
-                        onClick={() => moveRow(rowIndex + startIndex, Math.max(0, rowIndex + startIndex - 1))}
-                        className="p-1 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 ml-1"
-                        disabled={rowIndex === 0}
+      <div className="rounded-md border">
+        <ScrollArea className="w-full overflow-auto">
+          <div className="min-w-[800px]">
+            {" "}
+            {/* Ensure minimum width to prevent squishing */}
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  {columns.map((column, index) => (
+                    <TableHead
+                      key={index}
+                      className="p-2 text-xs font-medium text-left whitespace-normal"
+                      style={{ width: `${100 / columns.length}%` }} // Distribute width evenly
+                    >
+                      {column.label}
+                      {validation?.required && <span className="text-destructive ml-1">*</span>}
+                    </TableHead>
+                  ))}
+                  <TableHead className="w-[50px]"></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {value.map((row, rowIndex) => (
+                  <TableRow key={rowIndex}>
+                    {columns.map((_, columnIndex) => (
+                      <TableCell key={columnIndex} className="p-2">
+                        <input
+                          type="text"
+                          value={row[columnIndex] || ""}
+                          onChange={(e) => handleCellChange(rowIndex, columnIndex, e.target.value)}
+                          className="w-full min-w-0 flex-1 bg-transparent p-0 text-sm placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                        />
+                      </TableCell>
+                    ))}
+                    <TableCell className="w-[50px] p-2">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-destructive hover:text-destructive/90"
+                        onClick={() => handleDeleteRow(rowIndex)}
                       >
-                        <ArrowUp size={16} />
-                      </button>
-                      <button
-                        onClick={() => moveRow(rowIndex + startIndex, Math.min(value.length - 1, rowIndex + startIndex + 1))}
-                        className="p-1 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 ml-1"
-                        disabled={rowIndex === displayedRows.length - 1 && endIndex >= value.length}
-                      >
-                        <ArrowDown size={16} />
-                      </button>
-                    </>
-                  )}
-                </td>
-              )}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      {actions.canAdd && (
-        <button
-          onClick={addRow}
-          className="mt-2 p-2 bg-green-500 text-white rounded hover:bg-green-600"
-        >
-          <Plus size={16} className="inline mr-1" /> Add Row
-        </button>
-      )}
-      {value.length > rowsPerPage && (
-        <div className="mt-4 flex justify-between items-center">
-          <button
-            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-            disabled={currentPage === 1}
-            className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-gray-300"
-          >
-            Previous
-          </button>
-          <span>
-            Page {currentPage} of {Math.ceil(value.length / rowsPerPage)}
-          </span>
-          <button
-            onClick={() => setCurrentPage(Math.min(Math.ceil(value.length / rowsPerPage), currentPage + 1))}
-            disabled={endIndex >= value.length}
-            className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-gray-300"
-          >
-            Next
-          </button>
-        </div>
-      )}
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+          <ScrollBar orientation="horizontal" />
+        </ScrollArea>
+      </div>
     </div>
-  );
+  )
 }
+

@@ -18,7 +18,7 @@ export function FormGridClient({ forms }) {
         <Card key={form.id} className="border">
           <CardContent className="flex items-center justify-between p-4">
             <div>
-              <CardTitle style={{ color: textColor }} className="text-base font-medium">
+              <CardTitle style={{ color: textColor }} className="text-sm font-medium">
                 {form.name}
               </CardTitle>
             </div>
