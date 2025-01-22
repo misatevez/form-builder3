@@ -1,320 +1,336 @@
-import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { supabase } from "@/lib/supabase";
-import { TextInput } from "./form-elements/TextInput";
-import { Select } from "./form-elements/Select";
-import Checkbox from "./form-elements/Checkbox";
-import DatePicker from "./form-elements/DatePicker";
-import TimePicker from "./form-elements/TimePicker";
-import Slider from "./form-elements/Slider";
-import Rating from "./form-elements/Rating";
-import ColorPicker from "./form-elements/ColorPicker";
-import RichTextEditor from "./form-elements/RichTextEditor";
-import Autocomplete from "./form-elements/Autocomplete";
-import Signature from "./form-elements/Signature";
-import PhotoUpload from "./form-elements/PhotoUpload";
-import DynamicTable from "./form-elements/DynamicTable";
-import { useToast } from "@/components/ui/use-toast";
-import { useTheme } from "@/utils/theme";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+// components/FormEntriesModal.tsx
+"use client"
 
-interface FormEntriesModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  form: any;
-  entry: any;
-  fileName?: string;
-}
+import { useState, useEffect } from "react"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { supabase } from "@/lib/supabase"
+import { Button } from "@/components/ui/button"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { EditEntryModal } from "./EditEntryModal"
+import { useToast } from "@/components/ui/use-toast"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import { useTheme } from "@/utils/theme"
+import { EntryFormModal } from "./EntryFormModal"
+import { Edit, Trash2, FileText } from "lucide-react"
+import { Input } from "@/components/ui/input"
+import jsPDF from "jspdf"
+import { saveAs } from "file-saver"
+import autoTable from "jspdf-autotable";
 
-export function FormEntriesModal({
-  isOpen,
-  onClose,
-  form,
-  entry,
-  fileName = "",
-}: FormEntriesModalProps) {
-  const [formData, setFormData] = useState(entry?.data || {});
-  const { toast } = useToast();
-  const { primaryColor } = useTheme();
-  const [localFileName, setLocalFileName] = useState(fileName);
+
+export function FormEntriesModal({ isOpen, onClose, form }) {
+  const [entries, setEntries] = useState([])
+  const [entryModalState, setEntryModalState] = useState({ isOpen: false, entry: null, fileName: "" })
+  const [createModalState, setCreateModalState] = useState({ isOpen: false, fileName: "" })
+  const [isCreateAlertOpen, setIsCreateAlertOpen] = useState(false)
+  const [newFileName, setNewFileName] = useState("")
+  const { toast } = useToast()
+  const isAuthorized = true // Placeholder: reemplazar con la lógica real de autorización
+  const { primaryColor } = useTheme()
 
   useEffect(() => {
-    if (entry) {
-      setFormData(entry.data || {});
-      setLocalFileName(entry.file_name || "");
+    if (isOpen && form) {
+      fetchEntries()
     }
-  }, [entry]);
+  }, [isOpen, form])
 
-  const handleSubmit = async (e, isDraft = false) => {
-    e.preventDefault();
-
-    if (!isDraft) {
-      const missingRequiredFields = form.data.sections
-        .flatMap((section) => section.components)
-        .filter((component) => component.validation?.required && !formData[component.id])
-        .map((component) => component.label);
-
-      if (missingRequiredFields.length > 0) {
-        toast({
-          title: "Campos requeridos faltantes",
-          description: `Por favor, complete los siguientes campos: ${missingRequiredFields.join(", ")}`,
-          variant: "destructive",
-        });
-        return;
-      }
-    }
-
+  async function fetchEntries() {
     const { data, error } = await supabase
       .from("form_entries")
-      .update({
-        data: formData,
-        is_draft: isDraft,
-        file_name: localFileName,
-      })
-      .eq("id", entry.id);
+      .select("*")
+      .eq("form_id", form.id)
+      .order("created_at", { ascending: false })
 
     if (error) {
-      console.error("Error updating entry:", error);
-      toast({
-        title: "Error",
-        description: "Hubo un problema al actualizar la entrada. Por favor, intente de nuevo.",
-        variant: "destructive",
-      });
+      console.error("Error fetching entries:", error)
     } else {
-      console.log("Entry updated successfully:", data);
-      toast({
-        title: isDraft ? "Borrador actualizado" : "Entrada actualizada",
-        description: isDraft
-          ? "Su borrador ha sido actualizado exitosamente."
-          : "Su entrada ha sido actualizada exitosamente.",
-      });
-      onClose();
+      setEntries(data)
     }
-  };
+  }
 
-  const handleInputChange = (id, value) => {
-    setFormData((prevData) => ({ ...prevData, [id]: value }));
-  };
+  const handleEditEntry = (entry) => {
+    setEntryModalState({ isOpen: true, entry, fileName: entry.file_name })
+  }
 
-  const renderComponent = (component) => {
-    switch (component.type) {
-      case "text":
-      case "email":
-        return (
-          <TextInput
-            id={component.id}
-            label={component.label}
-            value={formData[component.id] || ""}
-            onChange={(value) => handleInputChange(component.id, value)}
-            validation={component.validation}
-          />
-        );
-      case "number":
-        return (
-          <TextInput
-            id={component.id}
-            label={component.label}
-            type="number"
-            value={formData[component.id] || ""}
-            onChange={(value) => handleInputChange(component.id, Number(value))}
-            validation={component.validation}
-          />
-        );
-      case "select":
-        return (
-          <Select
-            id={component.id}
-            label={component.label}
-            value={formData[component.id] || ""}
-            onChange={(value) => handleInputChange(component.id, value)}
-            options={component.options || []}
-            validation={component.validation}
-          />
-        );
-      case "checkbox":
-        return (
-          <Checkbox
-            id={component.id}
-            label={component.label}
-            checked={formData[component.id] || false}
-            onChange={(value) => handleInputChange(component.id, value)}
-          />
-        );
-      case "date":
-        return (
-          <DatePicker
-            id={component.id}
-            label={component.label}
-            value={formData[component.id] || undefined}
-            onChange={(value) => handleInputChange(component.id, value)}
-            validation={component.validation}
-          />
-        );
-      case "time":
-        return (
-          <TimePicker
-            id={component.id}
-            label={component.label}
-            value={formData[component.id] || ""}
-            onChange={(value) => handleInputChange(component.id, value)}
-            validation={component.validation}
-          />
-        );
-      case "slider":
-        return (
-          <Slider
-            id={component.id}
-            label={component.label}
-            value={formData[component.id] || 0}
-            onChange={(value) => handleInputChange(component.id, value)}
-            min={component.min}
-            max={component.max}
-            step={component.step}
-            validation={component.validation}
-          />
-        );
-      case "rating":
-        return (
-          <Rating
-            id={component.id}
-            label={component.label}
-            value={formData[component.id] || 0}
-            onChange={(value) => handleInputChange(component.id, value)}
-            validation={component.validation}
-          />
-        );
-      case "color":
-        return (
-          <ColorPicker
-            id={component.id}
-            label={component.label}
-            value={formData[component.id] || "#000000"}
-            onChange={(value) => handleInputChange(component.id, value)}
-            validation={component.validation}
-          />
-        );
-      case "richtext":
-        return (
-          <RichTextEditor
-            id={component.id}
-            label={component.label}
-            value={formData[component.id] || ""}
-            onChange={(value) => handleInputChange(component.id, value)}
-            validation={component.validation}
-          />
-        );
-      case "autocomplete":
-        return (
-          <Autocomplete
-            id={component.id}
-            label={component.label}
-            value={formData[component.id] || ""}
-            onChange={(value) => handleInputChange(component.id, value)}
-            options={component.options || []}
-            validation={component.validation}
-          />
-        );
-      case "signature":
-        return (
-          <Signature
-            id={component.id}
-            label={component.label}
-            value={formData[component.id] || ""}
-            onChange={(value) => handleInputChange(component.id, value)}
-            validation={component.validation}
-          />
-        );
-      case "photo":
-        return (
-          <PhotoUpload
-            id={component.id}
-            label={component.label}
-            value={formData[component.id] || []}
-            onChange={(value) => handleInputChange(component.id, value)}
-            validation={component.validation}
-          />
-        );
-      case "dynamicTable":
-        return (
-          <div className="space-y-4">
-            <DynamicTable
-              id={component.id}
-              label={component.label}
-              value={formData[component.id] || []}
-              onChange={(value) => handleInputChange(component.id, value)}
-              columns={component.columns}
-              validation={component.validation}
-            />
-            <div className="flex justify-end">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  const newRow = component.columns?.map(() => "") || [];
-                  handleInputChange(component.id, [...(formData[component.id] || []), newRow]);
-                }}
-              >
-                Añadir entrada
-              </Button>
-            </div>
-          </div>
-        );
-      default:
-        return (
-          <TextInput
-            id={component.id}
-            label={component.label}
-            value={formData[component.id] || ""}
-            onChange={(value) => handleInputChange(component.id, value)}
-            validation={component.validation}
-          />
-        );
+  const handleCreateEntry = () => {
+    setIsCreateAlertOpen(true)
+  }
+
+  const handleConfirmCreate = () => {
+    if (newFileName) {
+      setCreateModalState({ isOpen: true, fileName: newFileName })
+      setIsCreateAlertOpen(false)
+      setNewFileName("")
+    }
+  }
+
+  const handleDeleteForm = async () => {
+    try {
+      await supabase.from("forms").delete().eq("id", form.id)
+      toast({
+        title: "Form deleted",
+        description: "The form has been successfully deleted.",
+        duration: 3000,
+      })
+      onClose()
+    } catch (error) {
+      console.error("Error deleting form:", error)
+      toast({
+        title: "Error deleting form",
+        description: "There was a problem deleting the form. Please try again.",
+        variant: "destructive",
+        duration: 5000,
+      })
+    }
+  }
+
+  const handleDeleteEntry = async (entryId) => {
+    try {
+      await supabase.from("form_entries").delete().eq("id", entryId)
+      toast({
+        title: "Entrada eliminada",
+        description: "La entrada ha sido eliminada exitosamente.",
+        duration: 3000,
+      })
+      fetchEntries() // Refrescar la lista de entradas
+    } catch (error) {
+      console.error("Error al eliminar la entrada:", error)
+      toast({
+        title: "Error al eliminar la entrada",
+        description: "Hubo un problema al eliminar la entrada. Por favor, intente de nuevo.",
+        variant: "destructive",
+        duration: 5000,
+      })
+    }
+  }
+
+  const handleExportToPDF = (entry) => {
+    console.log("Exporting entry to PDF:", entry);
+    try {
+      const doc = new jsPDF();
+  
+      // Título principal del PDF
+      doc.setFontSize(18);
+      doc.setTextColor(40);
+      doc.text(`Entrada: ${entry.file_name}`, 10, 10);
+  
+      // Subtítulo con el nombre del formulario
+      doc.setFontSize(14);
+      doc.setTextColor(60);
+      doc.text(`Formulario: ${form.name}`, 10, 20);
+  
+      // Espaciado inicial
+      let yPos = 30;
+  
+      // Verificar si hay datos en la entrada y secciones en el formulario
+      if (entry.data && form.data?.sections) {
+        form.data.sections.forEach((section) => {
+          // Título de la sección
+          doc.setFontSize(12);
+          doc.setFont("helvetica", "bold");
+          doc.text(section.title, 10, yPos);
+          yPos += 10;
+  
+          // Verificar si la sección tiene componentes
+          if (section.components.length > 0) {
+            // Preparar las columnas y filas de la tabla
+            const columns = section.components.map((component) => component.label); // Encabezados
+            const row = section.components.map(
+              (component) => entry.data[component.id] || "N/A"
+            ); // Valores
+  
+            // Dibujar la tabla con título y datos
+            autoTable(doc, {
+              startY: yPos,
+              head: [columns], // Encabezados de las columnas
+              body: [row], // Valores en la fila
+              styles: { fontSize: 10 },
+              headStyles: { fillColor: [40, 167, 69] }, // Color verde para la cabecera
+            });
+  
+            // Actualizar la posición Y para la próxima sección
+            yPos = doc.lastAutoTable.finalY + 10;
+          } else {
+            // Si no hay componentes en la sección
+            doc.setFontSize(10);
+            doc.setTextColor(100);
+            doc.text("No hay datos en esta sección.", 10, yPos);
+            yPos += 10;
+          }
+        });
+      } else {
+        doc.setFontSize(12);
+        doc.text("No hay datos disponibles para esta entrada.", 10, yPos);
+      }
+  
+      // Generar el archivo PDF
+      const pdfBlob = doc.output("blob");
+      const pdfUrl = URL.createObjectURL(pdfBlob);
+  
+      // Crear un enlace temporal para descargar el PDF
+      const link = document.createElement("a");
+      link.href = pdfUrl;
+      link.download = `${entry.file_name || "documento"}.pdf`;
+      link.click();
+  
+      URL.revokeObjectURL(pdfUrl);
+  
+      console.log("PDF generado y la descarga ha comenzado");
+      toast({
+        title: "PDF exportado",
+        description: "El PDF ha sido generado y la descarga ha comenzado.",
+        duration: 3000,
+      });
+    } catch (error) {
+      console.error("Error generando el PDF:", error);
+      toast({
+        title: "Error al exportar PDF",
+        description: "Hubo un problema al generar el PDF. Por favor, intente de nuevo.",
+        variant: "destructive",
+        duration: 5000,
+      });
     }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-[60rem] p-0 h-[85vh] flex flex-col">
-        <DialogHeader className="p-6 pb-4 border-b shrink-0">
-          <DialogTitle>Editar entrada para: {form?.name} : {fileName} </DialogTitle>
-        </DialogHeader>
-        <form onSubmit={(e) => handleSubmit(e, false)} className="flex flex-col min-h-0 flex-1">
-          <div className="flex-1 min-h-0">
-            <ScrollArea className="h-full">
-              <div className="px-6">
-                <div className="py-6 space-y-8">
-                  {form?.data?.sections?.map((section) => (
-                    <div key={section.id} className="space-y-4">
-                      <h3 className="text-lg font-semibold">{section.title}</h3>
-                      <div className="grid gap-6">
-                        {section.components.map((component) => (
-                          <div key={component.id} className="w-full">
-                            {renderComponent(component)}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
+    <>
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Entradas para: {form?.name}</DialogTitle>
+          </DialogHeader>
+          <div className="mt-4">
+            {entries.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <p>No hay entradas para este formulario.</p>
+                <Button
+                  onClick={handleCreateEntry}
+                  className="mt-4"
+                  style={{ backgroundColor: primaryColor, color: "#ffffff" }}
+                >
+                  Crear nueva entrada
+                </Button>
               </div>
-              <ScrollBar />
-            </ScrollArea>
+            ) : (
+              <>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Nombre de archivo</TableHead>
+                      <TableHead>Estado</TableHead>
+                      <TableHead>Fecha de creación</TableHead>
+                      <TableHead>Acciones</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {entries.map((entry) => (
+                      <TableRow key={entry.id}>
+                        <TableCell>{entry.file_name}</TableCell>
+                        <TableCell>{entry.is_draft ? "Borrador" : "Publicado"}</TableCell>
+                        <TableCell>{new Date(entry.created_at).toLocaleString()}</TableCell>
+                        <TableCell>
+                          <Button onClick={() => handleEditEntry(entry)} variant="ghost" size="icon" className="mr-2">
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button onClick={() => handleExportToPDF(entry)} variant="ghost" size="icon" className="mr-2">
+                            <FileText className="h-4 w-4" />
+                          </Button>
+                          {isAuthorized && (
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button variant="ghost" size="icon" className="text-destructive">
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Esta acción no se puede deshacer. Se eliminará permanentemente esta entrada.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                  <AlertDialogAction onClick={() => handleDeleteEntry(entry.id)}>
+                                    Eliminar
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+                <div className="mt-4 flex justify-center">
+                  <Button onClick={handleCreateEntry} style={{ backgroundColor: primaryColor, color: "#ffffff" }}>
+                    Crear nueva entrada
+                  </Button>
+                </div>
+              </>
+            )}
           </div>
-          <div className="flex items-center justify-end gap-3 p-6 border-t bg-background shrink-0">
-            <Button type="button" variant="outline" onClick={onClose}>
-              Cancelar
-            </Button>
-            <Button type="button" variant="secondary" onClick={(e) => handleSubmit(e, true)}>
-              Guardar como borrador
-            </Button>
-            <Button type="submit" className="bg-[#2F4858] hover:bg-[#2F4858]/90 text-white">
-              Guardar entrada
-            </Button>
+        </DialogContent>
+      </Dialog>
+
+      {entryModalState.isOpen && (
+        <EditEntryModal
+          isOpen={entryModalState.isOpen}
+          onClose={() => {
+            setEntryModalState({ isOpen: false, entry: null })
+            fetchEntries() // Refetch entries after closing the modal
+          }}
+          form={form}
+          entry={entryModalState.entry}
+          fileName={entryModalState.fileName}
+        />
+      )}
+
+      {createModalState.isOpen && (
+        <EntryFormModal
+          isOpen={createModalState.isOpen}
+          onClose={() => {
+            setCreateModalState({ isOpen: false, fileName: "" })
+            fetchEntries()
+          }}
+          form={form}
+          fileName={createModalState.fileName}
+        />
+      )}
+
+      <AlertDialog open={isCreateAlertOpen} onOpenChange={setIsCreateAlertOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Crear nueva entrada</AlertDialogTitle>
+            <AlertDialogDescription>
+              Por favor, ingresa el nombre del archivo para la nueva entrada.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="mt-4">
+            <Input
+              type="text"
+              value={newFileName}
+              onChange={(e) => setNewFileName(e.target.value)}
+              placeholder="Nombre del archivo"
+            />
           </div>
-        </form>
-      </DialogContent>
-    </Dialog>
-  );
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setIsCreateAlertOpen(false)}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmCreate}>Crear</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  )
 }
