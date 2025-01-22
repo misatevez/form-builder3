@@ -15,6 +15,7 @@ import ColorPicker from "./form-elements/ColorPicker"
 import RichTextEditor from "./form-elements/RichTextEditor"
 import Autocomplete from "./form-elements/Autocomplete"
 import RadioGroup from "./form-elements/RadioGroup"
+import TextArea from "./form-elements/TextArea"
 
 export const LivePreview: React.FC = () => {
   const { template, data, updateData } = useFormContext()
@@ -25,6 +26,15 @@ export const LivePreview: React.FC = () => {
       case "email":
         return (
           <TextInput
+            key={component.id}
+            {...component}
+            value={data[component.id] || ""}
+            onChange={(value) => updateData({ [component.id]: value })}
+          />
+        )
+      case "textarea":
+        return (
+          <TextArea
             key={component.id}
             {...component}
             value={data[component.id] || ""}

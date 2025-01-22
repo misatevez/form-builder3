@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { FormComponent, TableColumn, TableValidation, TableActions } from '../../types/form';
 import { Plus, Trash2, ArrowUp, ArrowDown } from 'lucide-react';
+import { Button } from "@/components/ui/button";
 
 interface DynamicTableProps extends FormComponent {
   value?: any[][];
@@ -129,13 +130,13 @@ export function DynamicTable({
       </div>
 
       {(actions.canAdd || isPreview) && (
-        <button
+        <Button
           onClick={addRow}
-          className="mt-4 px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+          type="button"
         >
           <Plus size={16} className="inline-block mr-2" />
           Añadir entrada
-        </button>
+        </Button>
       )}
 
       {value.length > rowsPerPage && (
