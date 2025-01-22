@@ -20,7 +20,6 @@ import DynamicTable from "./form-elements/DynamicTable"
 import { useToast } from "@/components/ui/use-toast"
 import { useTheme } from "@/utils/theme"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
-import html2pdf from "html2pdf.js"
 
 interface EntryFormModalProps {
   isOpen: boolean
@@ -40,6 +39,15 @@ export function EntryFormModal({ isOpen, onClose, form, existingEntry = null, fi
   const { toast } = useToast()
   const { primaryColor } = useTheme()
   const [localFileName, setLocalFileName] = useState(fileName)
+  const [html2pdf, setHtml2pdf] = useState<any>(null)
+
+  useEffect(() => {
+    const loadHtml2pdf = async () => {
+      const html2pdfModule = await import("html2pdf.js")
+      setHtml2pdf(() => html2pdfModule.default)
+    }
+    loadHtml2pdf()
+  }, [])
 
   useEffect(() => {
     if (existingEntry && existingEntry.data) {
@@ -49,6 +57,11 @@ export function EntryFormModal({ isOpen, onClose, form, existingEntry = null, fi
   }, [existingEntry])
 
   const exportToPDF = () => {
+    if (!html2pdf) {
+      console.warn("PDF export is not available yet. Please try again in a moment.")
+      return
+    }
+
     const content = document.createElement("div")
     content.innerHTML = `
     <style>
@@ -463,7 +476,6 @@ export function EntryFormModal({ isOpen, onClose, form, existingEntry = null, fi
               columns={component.columns}
               validation={component.validation}
             />
-           
           </div>
         )
       default:
