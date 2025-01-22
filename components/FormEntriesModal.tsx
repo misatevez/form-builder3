@@ -25,6 +25,8 @@ import { Edit, Trash2, FileText } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import jsPDF from "jspdf"
 import { saveAs } from "file-saver"
+import autoTable from "jspdf-autotable";
+
 
 export function FormEntriesModal({ isOpen, onClose, form }) {
   const [entries, setEntries] = useState([])
@@ -113,65 +115,83 @@ export function FormEntriesModal({ isOpen, onClose, form }) {
   }
 
   const handleExportToPDF = (entry) => {
-    console.log("Exporting entry to PDF:", entry)
+    console.log("Exporting entry to PDF:", entry);
     try {
-      const doc = new jsPDF()
-
-      // Add title
-      doc.setFontSize(18)
+      const doc = new jsPDF();
+  
+      // Título principal del PDF
+      doc.setFontSize(18);
+      doc.setTextColor(40);
       doc.text(`Entrada: ${entry.file_name}`, 10, 10);
-
-      // Add form name
-      doc.setFontSize(14)
+  
+      // Subtítulo con el nombre del formulario
+      doc.setFontSize(14);
+      doc.setTextColor(60);
       doc.text(`Formulario: ${form.name}`, 10, 20);
-
-      // Add content
-      doc.setFontSize(12)
+  
+      // Espaciado inicial
       let yPos = 30;
-
-      // Add form data
+  
+      // Verificar si hay datos en la entrada y secciones en el formulario
       if (entry.data && form.data?.sections) {
         form.data.sections.forEach((section) => {
+          // Título de la sección
+          doc.setFontSize(12);
+          doc.setFont("helvetica", "bold");
           doc.text(section.title, 10, yPos);
           yPos += 10;
-          section.components.forEach((component) => {
-            const value = entry.data[component.id] || '';
-            doc.text(`${component.label}: ${value}`, 20, yPos);
-            yPos += 10;
+  
+          // Preparar datos para la tabla
+          const tableData = section.components.map((component) => [
+            component.label,
+            entry.data[component.id] || "N/A",
+          ]);
+  
+          // Dibujar tabla usando autoTable
+          autoTable(doc, {
+            startY: yPos,
+            head: [["Campo", "Valor"]],
+            body: tableData,
+            styles: { fontSize: 10 },
+            headStyles: { fillColor: [40, 167, 69] }, // Color verde para la cabecera
           });
+  
+          // Actualizar la posición Y para la próxima sección
+          yPos = doc.lastAutoTable.finalY + 10;
         });
       } else {
-        doc.text("No data available for this entry.", 10, yPos);
+        doc.setFontSize(12);
+        doc.text("No hay datos disponibles para esta entrada.", 10, yPos);
       }
-
-      // Generate PDF as data URL
-      const pdfBlob = doc.output('blob');
+  
+      // Generar el archivo PDF
+      const pdfBlob = doc.output("blob");
       const pdfUrl = URL.createObjectURL(pdfBlob);
-
-      // Create a temporary anchor element to trigger the download
-      const link = document.createElement('a');
+  
+      // Crear un enlace temporal para descargar el PDF
+      const link = document.createElement("a");
       link.href = pdfUrl;
       link.download = `${entry.file_name || "documento"}.pdf`;
       link.click();
-
+  
       URL.revokeObjectURL(pdfUrl);
-
-      console.log("PDF generated and download started")
+  
+      console.log("PDF generado y la descarga ha comenzado");
       toast({
         title: "PDF exportado",
         description: "El PDF ha sido generado y la descarga ha comenzado.",
         duration: 3000,
-      })
+      });
     } catch (error) {
-      console.error("Error generating PDF:", error)
+      console.error("Error generando el PDF:", error);
       toast({
         title: "Error al exportar PDF",
         description: "Hubo un problema al generar el PDF. Por favor, intente de nuevo.",
         variant: "destructive",
         duration: 5000,
-      })
+      });
     }
-  }
+  };
 
   return (
     <>
