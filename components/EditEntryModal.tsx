@@ -20,28 +20,29 @@ import DynamicTable from "./form-elements/DynamicTable"
 import { useToast } from "@/components/ui/use-toast"
 import { useTheme } from "@/utils/theme"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
+import html2pdf from "html2pdf.js"
 
 interface EntryFormModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  form: any;
-  existingEntry?: any;
-  fileName?: string;
+  isOpen: boolean
+  onClose: () => void
+  form: any
+  existingEntry?: any
+  fileName?: string
 }
 
 export function EditEntryModal({ isOpen, onClose, form, entry, fileName = "" }: EntryFormModalProps) {
-	console.log(fileName);
+  console.log(fileName)
   const [formData, setFormData] = useState(entry?.data || {})
   const { toast } = useToast()
   const { primaryColor } = useTheme()
-  const [localFileName, setLocalFileName] = useState(fileName);
+  const [localFileName, setLocalFileName] = useState(fileName)
 
   useEffect(() => {
     if (entry) {
-      setFormData(entry.data || {});
-      setLocalFileName(entry.file_name || "");
+      setFormData(entry.data || {})
+      setLocalFileName(entry.file_name || "")
     }
-  }, [entry]);
+  }, [entry])
 
   const handleSubmit = async (e, isDraft = false) => {
     e.preventDefault()
@@ -86,12 +87,44 @@ export function EditEntryModal({ isOpen, onClose, form, entry, fileName = "" }: 
           ? "Su borrador ha sido actualizado exitosamente."
           : "Su entrada ha sido actualizada exitosamente.",
       })
+
+      if (!isDraft) {
+        exportToPDF()
+      }
+
       onClose()
     }
   }
 
   const handleInputChange = (id, value) => {
     setFormData((prevData) => ({ ...prevData, [id]: value }))
+  }
+
+  const exportToPDF = () => {
+    const content = document.createElement("div")
+    content.innerHTML = `
+      <h1>${form.name}</h1>
+      ${form.data.sections
+        .map(
+          (section) => `
+        <h2>${section.title}</h2>
+        ${section.components
+          .map(
+            (component) => `
+          <div>
+            <strong>${component.label}:</strong> ${formData[component.id] || ""}
+          </div>
+        `,
+          )
+          .join("")}
+      `,
+        )
+        .join("")}
+    `
+
+    html2pdf()
+      .from(content)
+      .save(`${localFileName || "form_entry"}.pdf`)
   }
 
   const renderComponent = (component) => {
@@ -275,7 +308,9 @@ export function EditEntryModal({ isOpen, onClose, form, entry, fileName = "" }: 
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-[60rem] p-0 h-[85vh] flex flex-col">
         <DialogHeader className="p-6 pb-4 border-b shrink-0">
-          <DialogTitle>Editar entrada para: {form?.name} : {fileName} </DialogTitle>
+          <DialogTitle>
+            Editar entrada para: {form?.name} : {fileName}{" "}
+          </DialogTitle>
         </DialogHeader>
         <form onSubmit={(e) => handleSubmit(e, false)} className="flex flex-col min-h-0 flex-1">
           <div className="flex-1 min-h-0">
@@ -307,7 +342,7 @@ export function EditEntryModal({ isOpen, onClose, form, entry, fileName = "" }: 
               Guardar como borrador
             </Button>
             <Button type="submit" className="bg-[#2F4858] hover:bg-[#2F4858]/90 text-white">
-              Guardar entrada
+              Guardar entrada y publicar
             </Button>
           </div>
         </form>
@@ -315,3 +350,4 @@ export function EditEntryModal({ isOpen, onClose, form, entry, fileName = "" }: 
     </Dialog>
   )
 }
+
