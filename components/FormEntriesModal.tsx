@@ -117,31 +117,73 @@ export function FormEntriesModal({ isOpen, onClose, form }) {
     try {
       const doc = new jsPDF()
 
-      // Add title
-      doc.setFontSize(18)
-      doc.text(`Entrada: ${entry.file_name}`, 10, 10);
+      // Add logo
+      const logo = new Image();
+      logo.src = '/greenenergy-logo.svg';
+      logo.onload = () => {
+        try {
+          if (logo.complete) {
+            doc.addImage(logo, 'SVG', 10, 10, 50, 10);
 
-      // Add form name
-      doc.setFontSize(14)
-      doc.text(`Formulario: ${form.name}`, 10, 20);
+            // Add title
+            doc.setFontSize(18)
+            doc.text(`Entrada: ${entry.file_name}`, 10, 30);
 
-      // Add content
-      doc.setFontSize(12)
-      let yPos = 30;
-      doc.text("This is a basic PDF template without a logo.", 10, yPos);
+            // Add form name
+            doc.setFontSize(14)
+            doc.text(`Formulario: ${form.name}`, 10, 40);
 
-      // Generate PDF as data URL
-      const pdfDataUri = doc.output("datauristring")
+            // Add content
+            doc.setFontSize(12)
+            let yPos = 50;
+            doc.text("This is a basic PDF template with a logo.", 10, yPos);
 
-      // Open PDF in a new tab
-      window.open(pdfDataUri, "_blank")
+            // Generate PDF as data URL
+            const pdfBlob = doc.output('blob');
+            const pdfUrl = URL.createObjectURL(pdfBlob);
 
-      console.log("PDF generated and opened in a new tab")
-      toast({
-        title: "PDF exportado",
-        description: "El PDF ha sido generado y abierto en una nueva pestaña.",
-        duration: 3000,
-      })
+            // Create a temporary anchor element to trigger the download
+            const link = document.createElement('a');
+            link.href = pdfUrl;
+            link.download = `${form.name}.pdf`;
+            link.click();
+
+            URL.revokeObjectURL(pdfUrl);
+
+            console.log("PDF generated and download started")
+            toast({
+              title: "PDF exportado",
+              description: "El PDF ha sido generado y la descarga ha comenzado.",
+              duration: 3000,
+            })
+          } else {
+            console.error("Error loading logo image for PDF");
+            toast({
+              title: "Error al exportar PDF",
+              description: "Hubo un problema al cargar el logo para el PDF. Por favor, intente de nuevo.",
+              variant: "destructive",
+              duration: 5000,
+            })
+          }
+        } catch (e) {
+          console.error("Error during PDF generation:", e);
+          toast({
+            title: "Error al exportar PDF",
+            description: "Hubo un problema al generar el PDF. Por favor, intente de nuevo.",
+            variant: "destructive",
+            duration: 5000,
+          })
+        }
+      };
+      logo.onerror = () => {
+        console.error("Error loading logo image for PDF");
+        toast({
+          title: "Error al exportar PDF",
+          description: "Hubo un problema al cargar el logo para el PDF. Por favor, intente de nuevo.",
+          variant: "destructive",
+          duration: 5000,
+        })
+      }
     } catch (error) {
       console.error("Error generating PDF:", error)
       toast({
