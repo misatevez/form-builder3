@@ -31,7 +31,6 @@ interface EntryFormModalProps {
 }
 
 export function EditEntryModal({ isOpen, onClose, form, entry, fileName = "" }: EntryFormModalProps) {
-  console.log(fileName)
   const [formData, setFormData] = useState(entry?.data || {})
   const { toast } = useToast()
   const { primaryColor } = useTheme()
@@ -103,28 +102,203 @@ export function EditEntryModal({ isOpen, onClose, form, entry, fileName = "" }: 
   const exportToPDF = () => {
     const content = document.createElement("div")
     content.innerHTML = `
-      <h1>${form.name}</h1>
+    <style>
+      @page {
+        size: auto;
+        margin: 0mm;
+      }
+      @media print {
+        html, body {
+          width: 210mm;
+          height: auto !important;
+          page-break-after: avoid !important;
+          page-break-before: avoid !important;
+        }
+        * {
+          page-break-inside: avoid !important;
+        }
+      }
+      body {
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: Arial, sans-serif;
+        line-height: 1.6;
+        color: #333;
+      }
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        border-bottom: 2px solid #2F4858;
+        padding-bottom: 10px;
+      }
+      h1 {
+        color: #2F4858;
+        margin: 0;
+        font-size: 24px;
+      }
+      .file-name {
+        font-size: 1.2em;
+        color: #666;
+      }
+      h2 {
+        color: #2F4858;
+        margin-top: 30px;
+        margin-bottom: 20px;
+        font-size: 20px;
+        border-bottom: 1px solid #2F4858;
+        padding-bottom: 5px;
+      }
+      .section {
+        margin-bottom: 40px;
+      }
+      .field {
+        margin-bottom: 20px;
+      }
+      .field-label {
+        font-weight: bold;
+        margin-bottom: 5px;
+        color: #2F4858;
+      }
+      .field-value {
+        background-color: #f9f9f9;
+        padding: 10px;
+        border-radius: 4px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+        margin-bottom: 20px;
+      }
+      th, td {
+        border: 1px solid #ddd;
+        padding: 12px;
+        text-align: left;
+      }
+      th {
+        background-color: #f2f2f2;
+        font-weight: bold;
+        color: #2F4858;
+      }
+      .table-title {
+        font-weight: bold;
+        margin-bottom: 10px;
+        color: #2F4858;
+      }
+      img {
+        max-width: 100%;
+        height: auto;
+        margin-top: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+      }
+    </style>
+    <div class="container">
+      <div class="header">
+        <h1>${form.name}</h1>
+        <div class="file-name">${localFileName}</div>
+      </div>
       ${form.data.sections
         .map(
           (section) => `
-        <h2>${section.title}</h2>
-        ${section.components
-          .map(
-            (component) => `
-          <div>
-            <strong>${component.label}:</strong> ${formData[component.id] || ""}
-          </div>
-        `,
-          )
-          .join("")}
+        <div class="section">
+          <h2>${section.title}</h2>
+          ${section.components
+            .map((component) => {
+              const value = formData[component.id]
+              switch (component.type) {
+                case "dynamicTable":
+                  return `
+                  <div class="field">
+                    <div class="table-title">${component.label}</div>
+                    <table>
+                      <thead>
+                        <tr>
+                          ${component.columns.map((col) => `<th>${col.label}</th>`).join("")}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        ${(value || [])
+                          .map(
+                            (row) => `
+                          <tr>
+                            ${row.map((cell) => `<td>${cell}</td>`).join("")}
+                          </tr>
+                        `,
+                          )
+                          .join("")}
+                      </tbody>
+                    </table>
+                  </div>
+                `
+                case "photo":
+                  return `
+                  <div class="field">
+                    <div class="field-label">${component.label}</div>
+                    <div class="field-value">
+                      ${(value || []).map((photo) => `<img src="${photo}" alt="Uploaded photo" />`).join("")}
+                    </div>
+                  </div>
+                `
+                case "signature":
+                  return `
+                  <div class="field">
+                    <div class="field-label">${component.label}</div>
+                    <div class="field-value">
+                      <img src="${value}" alt="Signature" />
+                    </div>
+                  </div>
+                `
+                default:
+                  return `
+                  <div class="field">
+                    <div class="field-label">${component.label}</div>
+                    <div class="field-value">${value || ""}</div>
+                  </div>
+                `
+              }
+            })
+            .join("")}
+        </div>
       `,
         )
         .join("")}
-    `
+    </div>
+  `
 
-    html2pdf()
-      .from(content)
-      .save(`${localFileName || "form_entry"}.pdf`)
+    const opt = {
+      margin: 0,
+      filename: `${form.name} - ${localFileName}.pdf`,
+      image: { type: "jpeg", quality: 0.98 },
+      html2canvas: {
+        scale: 2,
+        scrollY: -window.scrollY,
+        windowHeight: document.documentElement.scrollHeight,
+        useCORS: true,
+      },
+      jsPDF: {
+        unit: "mm",
+        format: "a4",
+        orientation: "portrait",
+        putOnlyUsedFonts: true,
+        compress: true,
+        precision: 16,
+        userUnit: 1.0,
+        hotfixes: ["px_scaling"],
+        pagebreak: { mode: ["avoid-all", "css", "legacy"] },
+      },
+    }
+
+    html2pdf().from(content).set(opt).save()
   }
 
   const renderComponent = (component) => {
@@ -306,7 +480,7 @@ export function EditEntryModal({ isOpen, onClose, form, entry, fileName = "" }: 
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-[60rem] p-0 h-[85vh] flex flex-col">
+      <DialogContent className="max-w-[80rem] p-0 h-[85vh] flex flex-col">
         <DialogHeader className="p-6 pb-4 border-b shrink-0">
           <DialogTitle>
             Editar entrada para: {form?.name} : {fileName}{" "}
@@ -341,8 +515,8 @@ export function EditEntryModal({ isOpen, onClose, form, entry, fileName = "" }: 
             <Button type="button" variant="secondary" onClick={(e) => handleSubmit(e, true)}>
               Guardar como borrador
             </Button>
-            <Button type="submit" className="bg-[#2F4858] hover:bg-[#2F4858]/90 text-white">
-              Guardar entrada y publicar
+            <Button type="submit" className="text-white">
+              Guardar y Publicar
             </Button>
           </div>
         </form>

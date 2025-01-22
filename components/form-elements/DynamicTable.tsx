@@ -135,7 +135,7 @@ export function DynamicTable({
           type="button"
         >
           <Plus size={16} className="inline-block mr-2" />
-          Añadir entrada
+          Añadir
         </Button>
       )}
 

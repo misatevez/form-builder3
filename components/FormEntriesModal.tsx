@@ -242,9 +242,7 @@ export function FormEntriesModal({ isOpen, onClose, form }) {
                           <Button onClick={() => handleEditEntry(entry)} variant="ghost" size="icon" className="mr-2">
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button onClick={() => handleExportToPDF(entry)} variant="ghost" size="icon" className="mr-2">
-                            <FileText className="h-4 w-4" />
-                          </Button>
+                          
                           {isAuthorized && (
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
