@@ -141,23 +141,32 @@ export function FormEntriesModal({ isOpen, onClose, form }) {
           doc.text(section.title, 10, yPos);
           yPos += 10;
   
-          // Preparar datos para la tabla
-          const tableData = section.components.map((component) => [
-            component.label,
-            entry.data[component.id] || "N/A",
-          ]);
+          // Verificar si la sección tiene componentes
+          if (section.components.length > 0) {
+            // Preparar las columnas y filas de la tabla
+            const columns = section.components.map((component) => component.label); // Encabezados
+            const row = section.components.map(
+              (component) => entry.data[component.id] || "N/A"
+            ); // Valores
   
-          // Dibujar tabla usando autoTable
-          autoTable(doc, {
-            startY: yPos,
-            head: [["Campo", "Valor"]],
-            body: tableData,
-            styles: { fontSize: 10 },
-            headStyles: { fillColor: [40, 167, 69] }, // Color verde para la cabecera
-          });
+            // Dibujar la tabla con título y datos
+            autoTable(doc, {
+              startY: yPos,
+              head: [columns], // Encabezados de las columnas
+              body: [row], // Valores en la fila
+              styles: { fontSize: 10 },
+              headStyles: { fillColor: [40, 167, 69] }, // Color verde para la cabecera
+            });
   
-          // Actualizar la posición Y para la próxima sección
-          yPos = doc.lastAutoTable.finalY + 10;
+            // Actualizar la posición Y para la próxima sección
+            yPos = doc.lastAutoTable.finalY + 10;
+          } else {
+            // Si no hay componentes en la sección
+            doc.setFontSize(10);
+            doc.setTextColor(100);
+            doc.text("No hay datos en esta sección.", 10, yPos);
+            yPos += 10;
+          }
         });
       } else {
         doc.setFontSize(12);
