@@ -46,6 +46,7 @@
     "date-fns": "latest",
     "embla-carousel-react": "8.5.1",
     "file-saver": "^2.0.5",
+    "html2pdf.js": "^0.10.2",
     "input-otp": "1.4.1",
     "jspdf": "^2.5.2",
     "jspdf-autotable": "latest",
