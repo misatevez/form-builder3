@@ -112,88 +112,53 @@ export function FormEntriesModal({ isOpen, onClose, form }) {
     }
   }
 
-  const handleExportToPDF = (entry) => {
-    console.log("Exporting entry to PDF:", entry)
-    try {
-      const doc = new jsPDF()
+const handleExportToPDF = (entry) => {
+  // Confirmación personalizada
+  const userPermission = window.confirm(
+    "¿Quieres permitir la descarga de archivos?"
+  );
 
-      // Add logo
-      const logo = new Image();
-      logo.src = '/greenenergy-logo.svg';
-      logo.onload = () => {
-        try {
-          if (logo.complete) {
-            doc.addImage(logo, 'SVG', 10, 10, 50, 10);
-
-            // Add title
-            doc.setFontSize(18)
-            doc.text(`Entrada: ${entry.file_name}`, 10, 30);
-
-            // Add form name
-            doc.setFontSize(14)
-            doc.text(`Formulario: ${form.name}`, 10, 40);
-
-            // Add content
-            doc.setFontSize(12)
-            let yPos = 50;
-            doc.text("This is a basic PDF template with a logo.", 10, yPos);
-
-            // Generate PDF as data URL
-            const pdfBlob = doc.output('blob');
-            const pdfUrl = URL.createObjectURL(pdfBlob);
-
-            // Create a temporary anchor element to trigger the download
-            const link = document.createElement('a');
-            link.href = pdfUrl;
-            link.download = `${form.name}.pdf`;
-            link.click();
-
-            URL.revokeObjectURL(pdfUrl);
-
-            console.log("PDF generated and download started")
-            toast({
-              title: "PDF exportado",
-              description: "El PDF ha sido generado y la descarga ha comenzado.",
-              duration: 3000,
-            })
-          } else {
-            console.error("Error loading logo image for PDF");
-            toast({
-              title: "Error al exportar PDF",
-              description: "Hubo un problema al cargar el logo para el PDF. Por favor, intente de nuevo.",
-              variant: "destructive",
-              duration: 5000,
-            })
-          }
-        } catch (e) {
-          console.error("Error during PDF generation:", e);
-          toast({
-            title: "Error al exportar PDF",
-            description: "Hubo un problema al generar el PDF. Por favor, intente de nuevo.",
-            variant: "destructive",
-            duration: 5000,
-          })
-        }
-      };
-      logo.onerror = () => {
-        console.error("Error loading logo image for PDF");
-        toast({
-          title: "Error al exportar PDF",
-          description: "Hubo un problema al cargar el logo para el PDF. Por favor, intente de nuevo.",
-          variant: "destructive",
-          duration: 5000,
-        })
-      }
-    } catch (error) {
-      console.error("Error generating PDF:", error)
-      toast({
-        title: "Error al exportar PDF",
-        description: "Hubo un problema al generar el PDF. Por favor, intente de nuevo.",
-        variant: "destructive",
-        duration: 5000,
-      })
-    }
+  if (!userPermission) {
+    toast({
+      title: "Descarga cancelada",
+      description: "No se generó el archivo PDF.",
+      duration: 3000,
+    });
+    return; // Salir si el usuario no otorga permiso
   }
+
+  try {
+    const doc = new jsPDF();
+
+    // Agregar contenido al PDF
+    doc.setFontSize(18);
+    doc.text(`Entrada: ${entry.file_name}`, 10, 10);
+    doc.setFontSize(14);
+    doc.text(`Formulario: ${form.name}`, 10, 20);
+    doc.setFontSize(12);
+    let yPos = 30;
+    doc.text("This is a basic PDF template without a logo.", 10, yPos);
+
+    // Generar PDF y descargarlo
+    const pdfBlob = doc.output("blob");
+    saveAs(pdfBlob, `${entry.file_name || "documento"}.pdf`);
+
+    toast({
+      title: "PDF exportado",
+      description: "El archivo PDF se descargó correctamente.",
+      duration: 3000,
+    });
+  } catch (error) {
+    console.error("Error generating PDF:", error);
+    toast({
+      title: "Error al exportar PDF",
+      description: "Hubo un problema al generar el PDF. Por favor, intente de nuevo.",
+      variant: "destructive",
+      duration: 5000,
+    });
+  }
+};
+
 
   return (
     <>
