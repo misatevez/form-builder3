@@ -14,6 +14,7 @@ import Rating from "./form-elements/Rating"
 import ColorPicker from "./form-elements/ColorPicker"
 import RichTextEditor from "./form-elements/RichTextEditor"
 import Autocomplete from "./form-elements/Autocomplete"
+import RadioGroup from "./form-elements/RadioGroup"
 
 export const LivePreview: React.FC = () => {
   const { template, data, updateData } = useFormContext()
@@ -24,6 +25,7 @@ export const LivePreview: React.FC = () => {
       case "email":
         return (
           <TextInput
+            key={component.id}
             {...component}
             value={data[component.id] || ""}
             onChange={(value) => updateData({ [component.id]: value })}
@@ -32,6 +34,7 @@ export const LivePreview: React.FC = () => {
       case "select":
         return (
           <Select
+            key={component.id}
             {...component}
             value={data[component.id] || ""}
             onChange={(value) => updateData({ [component.id]: value })}
@@ -40,14 +43,25 @@ export const LivePreview: React.FC = () => {
       case "checkbox":
         return (
           <Checkbox
+            key={component.id}
             {...component}
             checked={data[component.id] || false}
+            onChange={(value) => updateData({ [component.id]: value })}
+          />
+        )
+      case "radio":
+        return (
+          <RadioGroup
+            key={component.id}
+            {...component}
+            value={data[component.id] || ""}
             onChange={(value) => updateData({ [component.id]: value })}
           />
         )
       case "date":
         return (
           <DatePicker
+            key={component.id}
             {...component}
             value={data[component.id] || undefined}
             onChange={(value) => updateData({ [component.id]: value })}
@@ -56,6 +70,7 @@ export const LivePreview: React.FC = () => {
       case "time":
         return (
           <TimePicker
+            key={component.id}
             {...component}
             value={data[component.id] || ""}
             onChange={(value) => updateData({ [component.id]: value })}
@@ -64,6 +79,7 @@ export const LivePreview: React.FC = () => {
       case "slider":
         return (
           <Slider
+            key={component.id}
             {...component}
             value={data[component.id] || 0}
             onChange={(value) => updateData({ [component.id]: value })}
@@ -72,6 +88,7 @@ export const LivePreview: React.FC = () => {
       case "rating":
         return (
           <Rating
+            key={component.id}
             {...component}
             value={data[component.id] || 0}
             onChange={(value) => updateData({ [component.id]: value })}
@@ -80,6 +97,7 @@ export const LivePreview: React.FC = () => {
       case "color":
         return (
           <ColorPicker
+            key={component.id}
             {...component}
             value={data[component.id] || "#000000"}
             onChange={(value) => updateData({ [component.id]: value })}
@@ -88,6 +106,7 @@ export const LivePreview: React.FC = () => {
       case "richtext":
         return (
           <RichTextEditor
+            key={component.id}
             {...component}
             value={data[component.id] || ""}
             onChange={(value) => updateData({ [component.id]: value })}
@@ -96,6 +115,7 @@ export const LivePreview: React.FC = () => {
       case "autocomplete":
         return (
           <Autocomplete
+            key={component.id}
             {...component}
             value={data[component.id] || ""}
             onChange={(value) => updateData({ [component.id]: value })}
@@ -104,6 +124,7 @@ export const LivePreview: React.FC = () => {
       case "signature":
         return (
           <Signature
+            key={component.id}
             {...component}
             value={data[component.id] || ""}
             onChange={(value) => updateData({ [component.id]: value })}
@@ -112,6 +133,7 @@ export const LivePreview: React.FC = () => {
       case "photo":
         return (
           <PhotoUpload
+            key={component.id}
             {...component}
             value={data[component.id] || []}
             onChange={(value) => updateData({ [component.id]: value })}
@@ -120,6 +142,7 @@ export const LivePreview: React.FC = () => {
       case "dynamicTable":
         return (
           <DynamicTable
+            key={component.id}
             {...component}
             value={data[component.id] || []}
             onChange={(value) => updateData({ [component.id]: value })}
@@ -144,3 +167,4 @@ export const LivePreview: React.FC = () => {
     </div>
   )
 }
+

@@ -40,4 +40,3 @@ export const componentIcons: Record<ComponentType, React.ComponentType> = {
   photo: ImageIcon,
   dynamicTable: TableIcon,
 }
-

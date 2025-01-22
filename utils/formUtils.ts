@@ -32,4 +32,3 @@ export async function saveFormToSupabase(template: any) {
     throw error
   }
 }
-

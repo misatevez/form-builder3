@@ -21,4 +21,3 @@ export const api = {
   },
   // ... otras funciones de la API
 }
-

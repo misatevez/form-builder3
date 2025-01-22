@@ -20,4 +20,3 @@ export function FormBuilderLayout({ leftSidebar, mainContent, rightSidebar }: Fo
     </div>
   )
 }
-
