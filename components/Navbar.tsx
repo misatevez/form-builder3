@@ -16,9 +16,7 @@ export function Navbar() {
           <Link href="/" className="px-4 py-2 rounded hover:bg-gray-100" style={{ color: '#ffffff' }}>
             Dashboard
           </Link>
-          <Link href="/form-builder" className="px-4 py-2 rounded hover:bg-gray-100" style={{ color: '#ffffff' }}>
-            Form Builder
-          </Link>
+          
         </div>
       </div>
     </nav>
