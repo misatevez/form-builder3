@@ -546,7 +546,7 @@ export function EditEntryModal({ isOpen, onClose, form, entry, fileName = "" }: 
               Guardar como borrador
             </Button>
             <Button type="submit" className="text-white w-full sm:w-auto">
-              Guardar entrada
+              Guardar y publicar
             </Button>
           </div>
         </form>
