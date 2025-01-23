@@ -21,6 +21,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { useTheme } from "@/utils/theme";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
+import { v4 as uuidv4 } from 'uuid';
 
 interface EntryFormModalProps {
   isOpen: boolean;
@@ -35,7 +36,8 @@ export function EditEntryModal({ isOpen, onClose, form, entry, fileName = "" }: 
   const { toast } = useToast();
   const { primaryColor } = useTheme();
   const [localFileName, setLocalFileName] = useState(fileName);
- const [html2pdf, setHtml2pdf] = useState<any>(null)
+  const [html2pdf, setHtml2pdf] = useState<any>(null);
+  const [uploading, setUploading] = useState(false);
 
 	useEffect(() => {
     const loadHtml2pdf = async () => {
@@ -106,9 +108,92 @@ export function EditEntryModal({ isOpen, onClose, form, entry, fileName = "" }: 
     }
   }
 
-  const handleInputChange = (id: string, value: any) => {
+  const handleInputChange = async (id: string, value: any) => {
     setFormData((prevData) => ({ ...prevData, [id]: value }));
-  };
+    
+    if (typeof value === 'object' && value !== null && Array.isArray(value) && value.length > 0) {
+      const component = form.data.sections
+        .flatMap((section: any) => section.components)
+        .find((comp: any) => comp.id === id);
+
+      if (component?.type === 'photo') {
+        setUploading(true);
+        try {
+          const uploadPromises = value.map(async (file: any) => {
+            if (typeof file === 'string') {
+              return file; // If it's already a URL, don't upload
+            }
+            const fileName = `${uuidv4()}-${file.name}`;
+            
+            // Convert File to Blob
+            const blob = new Blob([file], { type: file.type });
+
+            const { data, error } = await supabase.storage
+              .from("fsp-files") // Correct bucket name for photos
+              .upload(fileName, blob);
+
+            if (error) {
+              console.error("Error uploading file:", error);
+              throw error;
+            }
+
+            const publicUrl = supabase.storage
+              .from("fsp-files") // Correct bucket name for photos
+              .getPublicUrl(fileName).data.publicUrl;
+
+            return publicUrl;
+          });
+
+          const uploadedUrls = await Promise.all(uploadPromises);
+          setFormData((prevData) => ({ ...prevData, [id]: uploadedUrls }));
+        } catch (error) {
+          console.error("Error during file upload:", error);
+          // Handle errors (e.g., show a toast)
+        } finally {
+          setUploading(false);
+        }
+      }
+    } else if (typeof value === 'string' && value.startsWith('data:image')) {
+        const component = form.data.sections
+          .flatMap((section: any) => section.components)
+          .find((comp: any) => comp.id === id);
+
+        if (component?.type === 'signature') {
+          setUploading(true);
+          try {
+            const fileName = `${uuidv4()}-signature.png`;
+            const byteString = atob(value.split(',')[1]);
+            const mimeString = value.split(',')[0].split(':')[1].split(';')[0];
+            const ab = new ArrayBuffer(byteString.length);
+            const ia = new Uint8Array(ab);
+            for (let i = 0; i < byteString.length; i++) {
+              ia[i] = byteString.charCodeAt(i);
+            }
+            const blob = new Blob([ab], { type: mimeString });
+
+            const { data, error } = await supabase.storage
+              .from("fsp-files") // Correct bucket name for signatures
+              .upload(fileName, blob);
+
+            if (error) {
+              console.error("Error uploading signature:", error);
+            }
+
+            const publicUrl = supabase.storage
+              .from("fsp-files") // Correct bucket name for signatures
+              .getPublicUrl(fileName).data.publicUrl;
+
+            setFormData((prevData) => ({ ...prevData, [id]: publicUrl }));
+          } catch (error) {
+            console.error("Error during signature upload:", error);
+          } finally {
+            setUploading(false);
+          }
+        }
+      } else {
+        setFormData((prevData) => ({ ...prevData, [id]: value }));
+      }
+    };
 
 	const exportToPDF = () => {
     if (!html2pdf) {
@@ -470,6 +555,7 @@ export function EditEntryModal({ isOpen, onClose, form, entry, fileName = "" }: 
               value={formData[component.id] || []}
               onChange={(value) => handleInputChange(component.id, value)}
               validation={component.validation}
+              uploading={uploading}
             />
           </div>
         );
