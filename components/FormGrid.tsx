@@ -16,4 +16,3 @@ export async function FormGrid() {
   const forms = await getForms()
   return <FormGridClient forms={forms} />
 }
-

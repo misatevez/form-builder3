@@ -11,4 +11,3 @@ export function AuthWrapper({ children }) {
 
   return <>{children}</>
 }
-
