@@ -291,8 +291,7 @@ export function EditEntryModal({ isOpen, onClose, form, entry, fileName = "" }: 
     </div>
   `
 
-  const contentWidth = content.scrollWidth || document.documentElement.scrollWidth;
-  const contentHeight = content.scrollHeight || document.documentElement.scrollHeight;
+
 
     // Obtén las dimensiones reales del contenido
   document.body.appendChild(content); // Añade temporalmente al DOM para calcular dimensiones
