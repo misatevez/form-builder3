@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { supabase } from "@/lib/supabase"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -184,7 +184,7 @@ export function FormEntriesModal({ isOpen, onClose, form, currentUser }) {
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="w-full max-w-full sm:max-w-4xl max-h-[90vh] overflow-y-auto p-4 sm:p-6">
           <DialogHeader>
             <DialogTitle>Entradas para: {form?.name}</DialogTitle>
           </DialogHeader>
@@ -194,7 +194,7 @@ export function FormEntriesModal({ isOpen, onClose, form, currentUser }) {
                 <p>No hay entradas para este formulario.</p>
                 <Button
                   onClick={handleCreateEntry}
-                  className="mt-4"
+                  className="mt-4 w-full sm:w-auto"
                   style={{ backgroundColor: primaryColor, color: "#ffffff" }}
                 >
                   Crear nueva entrada
@@ -202,61 +202,78 @@ export function FormEntriesModal({ isOpen, onClose, form, currentUser }) {
               </div>
             ) : (
               <>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Nombre de archivo</TableHead>
-                      <TableHead>Estado</TableHead>
-                      <TableHead>Fecha de creación</TableHead>
-                      {isAuthorized && <TableHead>User Email</TableHead>}
-                      <TableHead>Acciones</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {entries.map((entry) => (
-                      <TableRow key={entry.id}>
-                        <TableCell>{entry.file_name}</TableCell>
-                        <TableCell>{entry.is_draft ? "Borrador" : "Publicado"}</TableCell>
-                        <TableCell>{new Date(entry.created_at).toLocaleString()}</TableCell>
-                        {isAuthorized && <TableCell>{userEmails[entry.user_id] || "Loading..."}</TableCell>}
-                        <TableCell>
-                          <Button onClick={() => handleEditEntry(entry)} variant="ghost" size="icon" className="mr-2">
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                         
-                          {(isAuthorized || entry.user_id === user?.id) && (
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <Button variant="ghost" size="icon" className="text-destructive">
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    Esta acción no se puede deshacer. Se eliminará permanentemente esta entrada.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                  <AlertDialogAction onClick={() => handleDeleteEntry(entry.id)}>
-                                    Eliminar
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          )}
-                        </TableCell>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-1/3">Nombre de archivo</TableHead>
+                        <TableHead className="w-1/6">Estado</TableHead>
+                        <TableHead className="w-1/4 hidden sm:table-cell">Fecha de creación</TableHead>
+                        {isAuthorized && <TableHead className="w-1/4 hidden md:table-cell">User Email</TableHead>}
+                        <TableHead className="w-1/6">Acciones</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-                <div className="mt-4 flex justify-center">
-                  <Button onClick={handleCreateEntry} style={{ backgroundColor: primaryColor, color: "#ffffff" }}>
-                    Crear nueva entrada
-                  </Button>
+                    </TableHeader>
+                    <TableBody>
+                      {entries.map((entry) => (
+                        <TableRow key={entry.id}>
+                          <TableCell className="font-medium">{entry.file_name}</TableCell>
+                          <TableCell>{entry.is_draft ? "Borrador" : "Publicado"}</TableCell>
+                          <TableCell className="hidden sm:table-cell">
+                            {new Date(entry.created_at).toLocaleString()}
+                          </TableCell>
+                          {isAuthorized && (
+                            <TableCell className="hidden md:table-cell">
+                              {userEmails[entry.user_id] || "Loading..."}
+                            </TableCell>
+                          )}
+                          <TableCell>
+                            <div className="flex space-x-2">
+                              <Button onClick={() => handleEditEntry(entry)} variant="ghost" size="icon">
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              
+                              {(isAuthorized || entry.user_id === user?.id) && (
+                                <AlertDialog>
+                                  <AlertDialogTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="text-destructive">
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        Esta acción no se puede deshacer. Se eliminará permanentemente esta entrada.
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                      <AlertDialogAction onClick={() => handleDeleteEntry(entry.id)}>
+                                        Eliminar
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
                 </div>
+
+                <DialogFooter>
+                  <div className="mt-4 flex justify-center w-full">
+                    <Button
+                      onClick={handleCreateEntry}
+                      style={{ backgroundColor: primaryColor, color: "#ffffff" }}
+                      className="w-full sm:w-auto"
+                    >
+                      Crear nueva entrada
+                    </Button>
+                  </div>
+                </DialogFooter>
               </>
             )}
           </div>
