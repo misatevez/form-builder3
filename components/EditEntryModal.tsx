@@ -54,7 +54,12 @@ export function EditEntryModal({ isOpen, onClose, form, entry, fileName = "" }: 
     }
   }, [entry])
 
+  useEffect(() => {
+    console.log("formData updated:", formData)
+  }, [formData])
+
   const handleSubmit = async (e: React.FormEvent, isDraft = false) => {
+    console.log("handleSubmit called", { isDraft, formData })
     e.preventDefault()
 
     if (!isDraft) {
@@ -82,6 +87,8 @@ export function EditEntryModal({ isOpen, onClose, form, entry, fileName = "" }: 
       })
       .eq("id", entry.id)
 
+    console.log("Supabase update result:", { data, error })
+
     if (error) {
       console.error("Error updating entry:", error)
       toast({
@@ -99,7 +106,16 @@ export function EditEntryModal({ isOpen, onClose, form, entry, fileName = "" }: 
       })
 
       if (!isDraft) {
-        exportToPDF()
+        try {
+          await exportToPDF()
+        } catch (pdfError) {
+          console.error("Error exporting PDF:", pdfError)
+          toast({
+            title: "Error",
+            description: "La entrada se actualizó, pero hubo un problema al generar el PDF.",
+            variant: "warning",
+          })
+        }
       }
 
       onClose()
@@ -356,34 +372,40 @@ export function EditEntryModal({ isOpen, onClose, form, entry, fileName = "" }: 
 
     document.body.appendChild(content)
 
-    // Wait for images to load
-    await Promise.all(
-      Array.from(content.getElementsByTagName("img")).map(
-        (img) =>
-          img.complete ||
-          new Promise((resolve) => {
-            img.onload = resolve
-          }),
-      ),
-    )
-
-    const opt = {
-      margin: 10,
-      filename: `${form.name} - ${localFileName}.pdf`,
-      image: { type: "jpeg", quality: 0.98 },
-      html2canvas: {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-      },
-      jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-    }
-
     try {
+      // Wait for images to load
+      await Promise.all(
+        Array.from(content.getElementsByTagName("img")).map(
+          (img) =>
+            img.complete ||
+            new Promise((resolve) => {
+              img.onload = resolve
+              img.onerror = resolve // Also handle error case
+            }),
+        ),
+      )
+
+      const opt = {
+        margin: 10,
+        filename: `${form.name} - ${localFileName}.pdf`,
+        image: { type: "jpeg", quality: 0.98 },
+        html2canvas: {
+          scale: 2,
+          useCORS: true,
+          logging: false,
+        },
+        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+      }
+
       await html2pdf().from(content).set(opt).save()
       console.log("PDF generated successfully")
     } catch (error) {
       console.error("Error generating PDF:", error)
+      toast({
+        title: "Error",
+        description: "Hubo un problema al generar el PDF. Por favor, intente de nuevo.",
+        variant: "destructive",
+      })
     } finally {
       document.body.removeChild(content)
     }
@@ -623,7 +645,14 @@ export function EditEntryModal({ isOpen, onClose, form, entry, fileName = "" }: 
             >
               Guardar como borrador
             </Button>
-            <Button type="submit" className="text-white w-full sm:w-auto">
+            <Button
+              type="button"
+              onClick={(e) => {
+                console.log("Guardar y publicar clicked")
+                handleSubmit(e, false)
+              }}
+              className="text-white w-full sm:w-auto"
+            >
               Guardar y publicar
             </Button>
           </div>
