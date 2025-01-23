@@ -61,38 +61,25 @@ export function EntryFormModal({ isOpen, onClose, form, existingEntry = null, fi
       console.warn("PDF export is not available yet. Please try again in a moment.")
       return
     }
-
+  
     const content = document.createElement("div")
     content.innerHTML = `
     <style>
       @page {
         size: auto;
-        margin: 0mm;
-      }
-      @media print {
-        html, body {
-          width: 210mm;
-          height: auto !important;
-          page-break-after: avoid !important;
-          page-break-before: avoid !important;
-        }
-        * {
-          page-break-inside: avoid !important;
-        }
+        margin: 0;
       }
       body {
         margin: 0;
         padding: 0;
-      }
-      body {
         font-family: Arial, sans-serif;
         line-height: 1.6;
         color: #333;
       }
       .container {
-        max-width: 800px;
-        margin: 0 auto;
+        width: 100%;
         padding: 20px;
+        box-sizing: border-box;
       }
       .header {
         display: flex;
@@ -235,31 +222,32 @@ export function EntryFormModal({ isOpen, onClose, form, existingEntry = null, fi
         )
         .join("")}
     </div>
-  `
-
+    `
+  
+    document.body.appendChild(content)
+    const contentWidth = content.scrollWidth
+    const contentHeight = content.scrollHeight
+    document.body.removeChild(content)
+  
     const opt = {
       margin: 0,
       filename: `${form.name} - ${localFileName}.pdf`,
       image: { type: "jpeg", quality: 0.98 },
       html2canvas: {
         scale: 2,
-        scrollY: -window.scrollY,
-        windowHeight: document.documentElement.scrollHeight,
         useCORS: true,
+        logging: false,
+        scrollY: -window.scrollY,
       },
       jsPDF: {
-        unit: "mm",
-        format: "a4",
+        unit: "px",
+        format: [contentWidth, contentHeight],
         orientation: "portrait",
-        putOnlyUsedFonts: true,
         compress: true,
-        precision: 16,
-        userUnit: 1.0,
-        hotfixes: ["px_scaling"],
-        pagebreak: { mode: ["avoid-all", "css", "legacy"] },
       },
+      pagebreak: { mode: ["avoid-all", "css", "legacy"] },
     }
-
+  
     html2pdf().from(content).set(opt).save()
   }
 
