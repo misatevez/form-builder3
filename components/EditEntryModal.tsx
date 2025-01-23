@@ -302,8 +302,8 @@ export function EditEntryModal({ isOpen, onClose, form, entry, fileName = "" }: 
         useCORS: true,
       },
       jsPDF: {
-        unit: "mm",
-        format: [content.scrollWidth, content.scrollHeight], // Usa el tamaño real del contenido
+        unit: "px",
+        format: [content.scrollWidth, content.scrollHeight], 
         orientation: "portrait",
         putOnlyUsedFonts: true,
         compress: true,
