@@ -523,7 +523,16 @@ export function EntryFormModal({ isOpen, onClose, form, existingEntry = null, fi
               Guardar como borrador
             </Button>
             <Button type="submit" className=" text-white">
-              Guardar y Publicar
+              Guardar
+            </Button>
+            <Button
+              type="button"
+              onClick={(e) => {
+                exportToPDF()
+              }}
+              className="text-white w-full sm:w-auto"
+            >
+               Export PDF
             </Button>
           </div>
         </form>

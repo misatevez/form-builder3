@@ -677,12 +677,21 @@ export function EditEntryModal({ isOpen, onClose, form, entry, fileName = "" }: 
             <Button
               type="button"
               onClick={(e) => {
-                console.log("Guardar y publicar clicked")
+                console.log("Guardar y publicar")
                 handleSubmit(e, false)
               }}
               className="text-white w-full sm:w-auto"
             >
-              Guardar y publicar
+              Guardar
+            </Button>
+            <Button
+              type="button"
+              onClick={(e) => {
+                exportToPDF()
+              }}
+              className="text-white w-full sm:w-auto"
+            >
+               Export PDF
             </Button>
           </div>
         </form>
