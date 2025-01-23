@@ -1,69 +1,67 @@
-"use client";
+"use client"
 
-import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { supabase } from "@/lib/supabase";
-import { TextInput } from "./form-elements/TextInput";
-import { Select } from "./form-elements/Select";
-import Checkbox from "./form-elements/Checkbox";
-import DatePicker from "./form-elements/DatePicker";
-import TimePicker from "./form-elements/TimePicker";
-import Slider from "./form-elements/Slider";
-import Rating from "./form-elements/Rating";
-import ColorPicker from "./form-elements/ColorPicker";
-import RichTextEditor from "./form-elements/RichTextEditor";
-import Autocomplete from "./form-elements/Autocomplete";
-import Signature from "./form-elements/Signature";
-import PhotoUpload from "./form-elements/PhotoUpload";
-import DynamicTable from "./form-elements/DynamicTable";
-import { useToast } from "@/components/ui/use-toast";
-import { useTheme } from "@/utils/theme";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { cn } from "@/lib/utils";
-import { v4 as uuidv4 } from 'uuid';
+import { useState, useEffect } from "react"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
+import { supabase } from "@/lib/supabase"
+import { TextInput } from "./form-elements/TextInput"
+import { Select } from "./form-elements/Select"
+import Checkbox from "./form-elements/Checkbox"
+import DatePicker from "./form-elements/DatePicker"
+import TimePicker from "./form-elements/TimePicker"
+import Slider from "./form-elements/Slider"
+import Rating from "./form-elements/Rating"
+import ColorPicker from "./form-elements/ColorPicker"
+import RichTextEditor from "./form-elements/RichTextEditor"
+import Autocomplete from "./form-elements/Autocomplete"
+import Signature from "./form-elements/Signature"
+import PhotoUpload from "./form-elements/PhotoUpload"
+import DynamicTable from "./form-elements/DynamicTable"
+import { useToast } from "@/components/ui/use-toast"
+import { useTheme } from "@/utils/theme"
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
+import { cn } from "@/lib/utils"
+import { v4 as uuidv4 } from "uuid"
 
 interface EntryFormModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  form: any;
-  existingEntry?: any;
-  fileName?: string;
+  isOpen: boolean
+  onClose: () => void
+  form: any
+  entry?: any
+  fileName?: string
 }
 
 export function EditEntryModal({ isOpen, onClose, form, entry, fileName = "" }: EntryFormModalProps) {
-  const [formData, setFormData] = useState(entry?.data || {});
-  const { toast } = useToast();
-  const { primaryColor } = useTheme();
-  const [localFileName, setLocalFileName] = useState(fileName);
-  const [html2pdf, setHtml2pdf] = useState<any>(null);
-  const [uploading, setUploading] = useState(false);
+  const [formData, setFormData] = useState(entry?.data || {})
+  const { toast } = useToast()
+  const { primaryColor } = useTheme()
+  const [localFileName, setLocalFileName] = useState(fileName)
+  const [html2pdf, setHtml2pdf] = useState<any>(null)
+  const [uploading, setUploading] = useState(false)
 
-	useEffect(() => {
+  useEffect(() => {
     const loadHtml2pdf = async () => {
       const html2pdfModule = await import("html2pdf.js")
       setHtml2pdf(() => html2pdfModule.default)
     }
     loadHtml2pdf()
   }, [])
-	
+
   useEffect(() => {
     if (entry) {
-      setFormData(entry.data || {});
-      setLocalFileName(entry.file_name || "");
+      setFormData(entry.data || {})
+      setLocalFileName(entry.file_name || "")
     }
-  }, [entry]);
+  }, [entry])
 
-	
-	
-   const handleSubmit = async (e, isDraft = false) => {
+  const handleSubmit = async (e: React.FormEvent, isDraft = false) => {
     e.preventDefault()
 
     if (!isDraft) {
       const missingRequiredFields = form.data.sections
-        .flatMap((section) => section.components)
-        .filter((component) => component.validation?.required && !formData[component.id])
-        .map((component) => component.label)
+        .flatMap((section: any) => section.components)
+        .filter((component: any) => component.validation?.required && !formData[component.id])
+        .map((component: any) => component.label)
 
       if (missingRequiredFields.length > 0) {
         toast({
@@ -109,292 +107,287 @@ export function EditEntryModal({ isOpen, onClose, form, entry, fileName = "" }: 
   }
 
   const handleInputChange = async (id: string, value: any) => {
-    setFormData((prevData) => ({ ...prevData, [id]: value }));
-    
-    if (typeof value === 'object' && value !== null && Array.isArray(value) && value.length > 0) {
+    setFormData((prevData) => ({ ...prevData, [id]: value }))
+
+    if (typeof value === "object" && value !== null && Array.isArray(value) && value.length > 0) {
       const component = form.data.sections
         .flatMap((section: any) => section.components)
-        .find((comp: any) => comp.id === id);
+        .find((comp: any) => comp.id === id)
 
-      if (component?.type === 'photo') {
-        setUploading(true);
+      if (component?.type === "photo") {
+        setUploading(true)
         try {
           const uploadPromises = value.map(async (file: any) => {
-            if (typeof file === 'string') {
-              return file; // If it's already a URL, don't upload
+            if (typeof file === "string") {
+              return file // If it's already a URL, don't upload
             }
-            const fileName = `${uuidv4()}-${file.name}`;
-            
-            // Convert File to Blob
-            const blob = new Blob([file], { type: file.type });
+            const fileName = `${uuidv4()}-${file.name}`
 
-            const { data, error } = await supabase.storage
-              .from("fsp-files") // Correct bucket name for photos
-              .upload(fileName, blob);
+            // Convert File to Blob
+            const blob = new Blob([file], { type: file.type })
+
+            const { data, error } = await supabase.storage.from("fsp-files").upload(fileName, blob)
 
             if (error) {
-              console.error("Error uploading file:", error);
-              throw error;
+              console.error("Error uploading file:", error)
+              throw error
             }
 
-            const publicUrl = supabase.storage
-              .from("fsp-files") // Correct bucket name for photos
-              .getPublicUrl(fileName).data.publicUrl;
+            const publicUrl = supabase.storage.from("fsp-files").getPublicUrl(fileName).data.publicUrl
 
-            return publicUrl;
-          });
+            return publicUrl
+          })
 
-          const uploadedUrls = await Promise.all(uploadPromises);
-          setFormData((prevData) => ({ ...prevData, [id]: uploadedUrls }));
+          const uploadedUrls = await Promise.all(uploadPromises)
+          setFormData((prevData) => ({ ...prevData, [id]: uploadedUrls }))
         } catch (error) {
-          console.error("Error during file upload:", error);
+          console.error("Error during file upload:", error)
           // Handle errors (e.g., show a toast)
         } finally {
-          setUploading(false);
+          setUploading(false)
         }
       }
-    } else if (typeof value === 'string' && value.startsWith('data:image')) {
-        const component = form.data.sections
-          .flatMap((section: any) => section.components)
-          .find((comp: any) => comp.id === id);
+    } else if (typeof value === "string" && value.startsWith("data:image")) {
+      const component = form.data.sections
+        .flatMap((section: any) => section.components)
+        .find((comp: any) => comp.id === id)
 
-        if (component?.type === 'signature') {
-          setUploading(true);
-          try {
-            const fileName = `${uuidv4()}-signature.png`;
-            const byteString = atob(value.split(',')[1]);
-            const mimeString = value.split(',')[0].split(':')[1].split(';')[0];
-            const ab = new ArrayBuffer(byteString.length);
-            const ia = new Uint8Array(ab);
-            for (let i = 0; i < byteString.length; i++) {
-              ia[i] = byteString.charCodeAt(i);
-            }
-            const blob = new Blob([ab], { type: mimeString });
-
-            const { data, error } = await supabase.storage
-              .from("fsp-files") // Correct bucket name for signatures
-              .upload(fileName, blob);
-
-            if (error) {
-              console.error("Error uploading signature:", error);
-            }
-
-            const publicUrl = supabase.storage
-              .from("fsp-files") // Correct bucket name for signatures
-              .getPublicUrl(fileName).data.publicUrl;
-
-            setFormData((prevData) => ({ ...prevData, [id]: publicUrl }));
-          } catch (error) {
-            console.error("Error during signature upload:", error);
-          } finally {
-            setUploading(false);
+      if (component?.type === "signature") {
+        setUploading(true)
+        try {
+          const fileName = `${uuidv4()}-signature.png`
+          const byteString = atob(value.split(",")[1])
+          const mimeString = value.split(",")[0].split(":")[1].split(";")[0]
+          const ab = new ArrayBuffer(byteString.length)
+          const ia = new Uint8Array(ab)
+          for (let i = 0; i < byteString.length; i++) {
+            ia[i] = byteString.charCodeAt(i)
           }
-        }
-      } else {
-        setFormData((prevData) => ({ ...prevData, [id]: value }));
-      }
-    };
+          const blob = new Blob([ab], { type: mimeString })
 
-	const exportToPDF = () => {
+          const { data, error } = await supabase.storage.from("fsp-files").upload(fileName, blob)
+
+          if (error) {
+            console.error("Error uploading signature:", error)
+          }
+
+          const publicUrl = supabase.storage.from("fsp-files").getPublicUrl(fileName).data.publicUrl
+
+          setFormData((prevData) => ({ ...prevData, [id]: publicUrl }))
+        } catch (error) {
+          console.error("Error during signature upload:", error)
+        } finally {
+          setUploading(false)
+        }
+      }
+    } else {
+      setFormData((prevData) => ({ ...prevData, [id]: value }))
+    }
+  }
+
+  const exportToPDF = async () => {
     if (!html2pdf) {
       console.warn("PDF export is not available yet. Please try again in a moment.")
       return
     }
-  
+
     const content = document.createElement("div")
     content.innerHTML = `
-    <style>
-      @page {
-        size: auto;
-        margin: 0;
-      }
-      body {
-        margin: 0;
-        padding: 0;
-        font-family: Arial, sans-serif;
-        line-height: 1.6;
-        color: #333;
-      }
-      .container {
-        width: 100%;
-        padding: 20px;
-        box-sizing: border-box;
-      }
-      .header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 30px;
-        border-bottom: 2px solid #2F4858;
-        padding-bottom: 10px;
-      }
-      h1 {
-        color: #2F4858;
-        margin: 0;
-        font-size: 24px;
-      }
-      .file-name {
-        font-size: 1.2em;
-        color: #666;
-      }
-      h2 {
-        color: #2F4858;
-        margin-top: 30px;
-        margin-bottom: 20px;
-        font-size: 20px;
-        border-bottom: 1px solid #2F4858;
-        padding-bottom: 5px;
-      }
-      .section {
-        margin-bottom: 40px;
-      }
-      .field {
-        margin-bottom: 20px;
-      }
-      .field-label {
-        font-weight: bold;
-        margin-bottom: 5px;
-        color: #2F4858;
-      }
-      .field-value {
-        background-color: #f9f9f9;
-        padding: 10px;
-        border-radius: 4px;
-      }
-      table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 10px;
-        margin-bottom: 20px;
-      }
-      th, td {
-        border: 1px solid #ddd;
-        padding: 12px;
-        text-align: left;
-      }
-      th {
-        background-color: #f2f2f2;
-        font-weight: bold;
-        color: #2F4858;
-      }
-      .table-title {
-        font-weight: bold;
-        margin-bottom: 10px;
-        color: #2F4858;
-      }
-      img {
-        max-width: 100%;
-        height: auto;
-        margin-top: 10px;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-      }
-    </style>
-    <div class="container">
-      <div class="header">
-        <h1>${form.name}</h1>
-        <div class="file-name">${localFileName}</div>
-      </div>
-      ${form.data.sections
-        .map(
-          (section) => `
-        <div class="section">
-          <h2>${section.title}</h2>
-          ${section.components
-            .map((component) => {
-              const value = formData[component.id]
-              switch (component.type) {
-                case "dynamicTable":
-                  return `
-                  <div class="field">
-                    <div class="table-title">${component.label}</div>
-                    <table>
-                      <thead>
-                        <tr>
-                          ${component.columns.map((col) => `<th>${col.label}</th>`).join("")}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        ${(value || [])
-                          .map(
-                            (row) => `
-                          <tr>
-                            ${row.map((cell) => `<td>${cell}</td>`).join("")}
-                          </tr>
-                        `,
-                          )
-                          .join("")}
-                      </tbody>
-                    </table>
-                  </div>
-                `
-                case "photo":
-                  return `
-                  <div class="field">
-                    <div class="field-label">${component.label}</div>
-                    <div class="field-value">
-                      ${(value || []).map((photo) => `<img src="${photo}" alt="Uploaded photo" />`).join("")}
-                    </div>
-                  </div>
-                `
-                case "signature":
-                  return `
-                  <div class="field">
-                    <div class="field-label">${component.label}</div>
-                    <div class="field-value">
-                      <img src="${value}" alt="Signature" />
-                    </div>
-                  </div>
-                `
-                default:
-                  return `
-                  <div class="field">
-                    <div class="field-label">${component.label}</div>
-                    <div class="field-value">${value || ""}</div>
-                  </div>
-                `
-              }
-            })
-            .join("")}
+      <style>
+        @page {
+          size: auto;
+          margin: 0;
+        }
+        body {
+          margin: 0;
+          padding: 0;
+          font-family: Arial, sans-serif;
+          line-height: 1.6;
+          color: #333;
+        }
+        .container {
+          width: 100%;
+          padding: 20px;
+          box-sizing: border-box;
+        }
+        .header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 30px;
+          border-bottom: 2px solid #2F4858;
+          padding-bottom: 10px;
+        }
+        h1 {
+          color: #2F4858;
+          margin: 0;
+          font-size: 24px;
+        }
+        .file-name {
+          font-size: 1.2em;
+          color: #666;
+        }
+        h2 {
+          color: #2F4858;
+          margin-top: 30px;
+          margin-bottom: 20px;
+          font-size: 20px;
+          border-bottom: 1px solid #2F4858;
+          padding-bottom: 5px;
+        }
+        .section {
+          margin-bottom: 40px;
+        }
+        .field {
+          margin-bottom: 20px;
+        }
+        .field-label {
+          font-weight: bold;
+          margin-bottom: 5px;
+          color: #2F4858;
+        }
+        .field-value {
+          background-color: #f9f9f9;
+          padding: 10px;
+          border-radius: 4px;
+        }
+        table {
+          width: 100%;
+          border-collapse: collapse;
+          margin-top: 10px;
+          margin-bottom: 20px;
+        }
+        th, td {
+          border: 1px solid #ddd;
+          padding: 12px;
+          text-align: left;
+        }
+        th {
+          background-color: #f2f2f2;
+          font-weight: bold;
+          color: #2F4858;
+        }
+        .table-title {
+          font-weight: bold;
+          margin-bottom: 10px;
+          color: #2F4858;
+        }
+        img {
+          max-width: 100%;
+          height: auto;
+          margin-top: 10px;
+          border: 1px solid #ddd;
+          border-radius: 4px;
+          page-break-inside: avoid;
+        }
+      </style>
+      <div class="container">
+        <div class="header">
+          <h1>${form.name}</h1>
+          <div class="file-name">${localFileName}</div>
         </div>
-      `,
-        )
-        .join("")}
-    </div>
+        ${form.data.sections
+          .map(
+            (section: any) => `
+          <div class="section">
+            <h2>${section.title}</h2>
+            ${section.components
+              .map((component: any) => {
+                const value = formData[component.id]
+                switch (component.type) {
+                  case "dynamicTable":
+                    return `
+                    <div class="field">
+                      <div class="table-title">${component.label}</div>
+                      <table>
+                        <thead>
+                          <tr>
+                            ${component.columns.map((col: any) => `<th>${col.label}</th>`).join("")}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          ${(value || [])
+                            .map(
+                              (row: any) => `
+                            <tr>
+                              ${row.map((cell: any) => `<td>${cell}</td>`).join("")}
+                            </tr>
+                          `,
+                            )
+                            .join("")}
+                        </tbody>
+                      </table>
+                    </div>
+                  `
+                  case "photo":
+                    return `
+                    <div class="field">
+                      <div class="field-label">${component.label}</div>
+                      <div class="field-value">
+                        ${(value || []).map((photo: string) => `<img src="${photo}" alt="Uploaded photo" />`).join("")}
+                      </div>
+                    </div>
+                  `
+                  case "signature":
+                    return `
+                    <div class="field">
+                      <div class="field-label">${component.label}</div>
+                      <div class="field-value">
+                        <img src="${value}" alt="Signature" />
+                      </div>
+                    </div>
+                  `
+                  default:
+                    return `
+                    <div class="field">
+                      <div class="field-label">${component.label}</div>
+                      <div class="field-value">${value || ""}</div>
+                    </div>
+                  `
+                }
+              })
+              .join("")}
+          </div>
+        `,
+          )
+          .join("")}
+      </div>
     `
-  
+
     document.body.appendChild(content)
-    const contentWidth = content.scrollWidth
-    const contentHeight = content.scrollHeight
-    document.body.removeChild(content)
-  
+
+    // Wait for images to load
+    await Promise.all(
+      Array.from(content.getElementsByTagName("img")).map(
+        (img) =>
+          img.complete ||
+          new Promise((resolve) => {
+            img.onload = resolve
+          }),
+      ),
+    )
+
     const opt = {
-      margin: 0,
+      margin: 10,
       filename: `${form.name} - ${localFileName}.pdf`,
       image: { type: "jpeg", quality: 0.98 },
       html2canvas: {
         scale: 2,
         useCORS: true,
         logging: false,
-        scrollY: -window.scrollY,
       },
-      jsPDF: {
-        unit: "px",
-        format: [contentWidth, contentHeight],
-        orientation: "portrait",
-        compress: true,
-      },
-      pagebreak: { mode: ["avoid-all", "css", "legacy"] },
+      jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
     }
-  
-    html2pdf().from(content).set(opt).save()
-  }
-  
-  
-  
-  
 
-	
+    try {
+      await html2pdf().from(content).set(opt).save()
+      console.log("PDF generated successfully")
+    } catch (error) {
+      console.error("Error generating PDF:", error)
+    } finally {
+      document.body.removeChild(content)
+    }
+  }
 
   const renderComponent = (component: any) => {
     switch (component.type) {
@@ -410,7 +403,7 @@ export function EditEntryModal({ isOpen, onClose, form, entry, fileName = "" }: 
               validation={component.validation}
             />
           </div>
-        );
+        )
       case "number":
         return (
           <div className="mb-4">
@@ -423,7 +416,7 @@ export function EditEntryModal({ isOpen, onClose, form, entry, fileName = "" }: 
               validation={component.validation}
             />
           </div>
-        );
+        )
       case "select":
         return (
           <div className="mb-4">
@@ -436,7 +429,7 @@ export function EditEntryModal({ isOpen, onClose, form, entry, fileName = "" }: 
               validation={component.validation}
             />
           </div>
-        );
+        )
       case "checkbox":
         return (
           <Checkbox
@@ -445,7 +438,7 @@ export function EditEntryModal({ isOpen, onClose, form, entry, fileName = "" }: 
             checked={formData[component.id] || false}
             onChange={(value) => handleInputChange(component.id, value)}
           />
-        );
+        )
       case "date":
         return (
           <div className="mb-4">
@@ -457,7 +450,7 @@ export function EditEntryModal({ isOpen, onClose, form, entry, fileName = "" }: 
               validation={component.validation}
             />
           </div>
-        );
+        )
       case "time":
         return (
           <div className="mb-4">
@@ -469,7 +462,7 @@ export function EditEntryModal({ isOpen, onClose, form, entry, fileName = "" }: 
               validation={component.validation}
             />
           </div>
-        );
+        )
       case "slider":
         return (
           <div className="mb-4">
@@ -484,7 +477,7 @@ export function EditEntryModal({ isOpen, onClose, form, entry, fileName = "" }: 
               validation={component.validation}
             />
           </div>
-        );
+        )
       case "rating":
         return (
           <div className="mb-4">
@@ -496,7 +489,7 @@ export function EditEntryModal({ isOpen, onClose, form, entry, fileName = "" }: 
               validation={component.validation}
             />
           </div>
-        );
+        )
       case "color":
         return (
           <div className="mb-4">
@@ -508,7 +501,7 @@ export function EditEntryModal({ isOpen, onClose, form, entry, fileName = "" }: 
               validation={component.validation}
             />
           </div>
-        );
+        )
       case "richtext":
         return (
           <div className="mb-4">
@@ -520,7 +513,7 @@ export function EditEntryModal({ isOpen, onClose, form, entry, fileName = "" }: 
               validation={component.validation}
             />
           </div>
-        );
+        )
       case "autocomplete":
         return (
           <div className="mb-4">
@@ -533,7 +526,7 @@ export function EditEntryModal({ isOpen, onClose, form, entry, fileName = "" }: 
               validation={component.validation}
             />
           </div>
-        );
+        )
       case "signature":
         return (
           <div className="mb-4">
@@ -545,7 +538,7 @@ export function EditEntryModal({ isOpen, onClose, form, entry, fileName = "" }: 
               validation={component.validation}
             />
           </div>
-        );
+        )
       case "photo":
         return (
           <div className="mb-4">
@@ -558,7 +551,7 @@ export function EditEntryModal({ isOpen, onClose, form, entry, fileName = "" }: 
               uploading={uploading}
             />
           </div>
-        );
+        )
       case "dynamicTable":
         return (
           <div className="mb-4">
@@ -572,7 +565,7 @@ export function EditEntryModal({ isOpen, onClose, form, entry, fileName = "" }: 
               isPreview={false}
             />
           </div>
-        );
+        )
       default:
         return (
           <div className="mb-4">
@@ -584,15 +577,17 @@ export function EditEntryModal({ isOpen, onClose, form, entry, fileName = "" }: 
               validation={component.validation}
             />
           </div>
-        );
+        )
     }
-  };
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-[60rem] p-0 h-[85vh] flex flex-col overflow-auto">
         <DialogHeader className="p-6 pb-4 border-b shrink-0">
-          <DialogTitle>Editar entrada para: {form?.name} : {fileName} </DialogTitle>
+          <DialogTitle>
+            Editar entrada para: {form?.name} : {fileName}{" "}
+          </DialogTitle>
         </DialogHeader>
         <form onSubmit={(e) => handleSubmit(e, false)} className="flex flex-col min-h-0 flex-1">
           <div className="flex-1 min-h-0">
@@ -620,7 +615,12 @@ export function EditEntryModal({ isOpen, onClose, form, entry, fileName = "" }: 
             <Button type="button" variant="outline" onClick={onClose} className="w-full sm:w-auto">
               Cancelar
             </Button>
-            <Button type="button" variant="secondary" onClick={(e) => handleSubmit(e, true)} className="w-full sm:w-auto">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={(e) => handleSubmit(e, true)}
+              className="w-full sm:w-auto"
+            >
               Guardar como borrador
             </Button>
             <Button type="submit" className="text-white w-full sm:w-auto">
@@ -630,5 +630,6 @@ export function EditEntryModal({ isOpen, onClose, form, entry, fileName = "" }: 
         </form>
       </DialogContent>
     </Dialog>
-  );
+  )
 }
+

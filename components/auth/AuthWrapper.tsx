@@ -1,23 +1,14 @@
 "use client"
 
-import { useAuth } from "@/components/auth/AuthContext"
-import { useRouter } from "next/navigation"
-import { useEffect } from "react"
+import { useAuth } from "./AuthContext"
 
-export default function AuthWrapper({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth()
-  const router = useRouter()
+export function AuthWrapper({ children }) {
+  const { user } = useAuth()
 
-  useEffect(() => {
-    if (!loading && !user) {
-      router.replace("/login")
-    }
-  }, [user, loading, router])
-
-  if (loading) {
-    return <div>Loading...</div>
+  if (!user) {
+    return null // or a loading indicator
   }
 
-  return user ? <>{children}</> : null
+  return <>{children}</>
 }
 

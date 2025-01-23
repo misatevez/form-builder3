@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { FormEntriesModal } from "./FormEntriesModal"
 import { useTheme } from "@/utils/theme"
@@ -28,7 +28,7 @@ export function FormGridClient({ forms }) {
                 setIsEntriesModalOpen(true)
               }}
               size="sm"
-              style={{ backgroundColor: primaryColor, color: '#ffffff' }}
+              style={{ backgroundColor: primaryColor, color: "#ffffff" }}
               className="flex items-center gap-2"
             >
               <FileText className="h-4 w-4" />
@@ -48,3 +48,4 @@ export function FormGridClient({ forms }) {
     </div>
   )
 }
+
