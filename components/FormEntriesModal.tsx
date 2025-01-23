@@ -36,7 +36,7 @@ export function FormEntriesModal({ isOpen, onClose, form, currentUser }) {
   const [newFileName, setNewFileName] = useState("")
   const { toast } = useToast()
   const { primaryColor } = useTheme()
-  const isAuthorized = user?.email === "misatevez@gmail.com"
+  const isAuthorized = user?.email === "apps@greenenergy.cr"
 
   useEffect(() => {
     if (isOpen && form) {
@@ -51,7 +51,7 @@ export function FormEntriesModal({ isOpen, onClose, form, currentUser }) {
       .eq("form_id", form.id)
       .order("created_at", { ascending: false })
 
-    if (user?.email !== "misatevez@gmail.com") {
+    if (user?.email !== "apps@greenenergy.cr") {
       query = query.eq("user_id", user?.id)
     }
 
