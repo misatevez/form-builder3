@@ -294,32 +294,31 @@ export function EditEntryModal({ isOpen, onClose, form, entry, fileName = "" }: 
   const contentWidth = content.scrollWidth || document.documentElement.scrollWidth;
   const contentHeight = content.scrollHeight || document.documentElement.scrollHeight;
 
-    const opt = {
-      margin: 0,
-      filename: `${form.name} - ${localFileName}.pdf`,
-      image: { type: "jpeg", quality: 0.98 },
-      html2canvas: {
-        scale: 2,
-        scrollY: -window.scrollY,
-        windowHeight: document.documentElement.scrollHeight,
-        useCORS: true,
-      },
-      jsPDF: {
-        unit: "mm",
-        format: [contentWidth, contentHeight], // Tamaño dinámico basado en el contenido
+    // Obtén las dimensiones reales del contenido
+  document.body.appendChild(content); // Añade temporalmente al DOM para calcular dimensiones
+  const contentWidth = content.scrollWidth;
+  const contentHeight = content.scrollHeight;
+  document.body.removeChild(content); // Elimina del DOM después de calcular
 
-        orientation: "portrait",
-        putOnlyUsedFonts: true,
-        compress: true,
-        precision: 16,
-        userUnit: 1.0,
-        hotfixes: ["px_scaling"],
-        pagebreak: { mode: ["avoid-all", "css", "legacy"] },
-      },
-    }
+  const opt = {
+    margin: 0,
+    filename: `${form.name} - ${localFileName}.pdf`,
+    image: { type: "jpeg", quality: 0.98 },
+    html2canvas: {
+      scale: 2, // Escala alta para mejor calidad
+      width: contentWidth,
+      height: contentHeight,
+      useCORS: true,
+    },
+    jsPDF: {
+      unit: "px",
+      format: [contentWidth, contentHeight], // Tamaño dinámico basado en el contenido
+      orientation: "portrait",
+    },
+  };
 
-    html2pdf().from(content).set(opt).save()
-  }
+  html2pdf().from(content).set(opt).save();
+};
 
 	
 
