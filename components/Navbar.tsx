@@ -32,14 +32,7 @@
             <Link href="/" className="flex items-center text-2xl font-bold">
               <img src="/greenenergy-logo.svg" alt="GreenEnergy Logo" className="h-8 mr-2" />
             </Link>
-            {user && (
-              <div className="flex items-center gap-2">
-                <span className="text-white">Hello! @{user.email}</span>
-                <Button onClick={handleLogout} variant="outline" style={{ color: textColor, borderColor: textColor }}>
-                  Logout
-                </Button>
-              </div>
-            )}
+            
           </div>
         </nav>
       )
