@@ -1,18 +1,24 @@
-import { Suspense, useEffect } from "react"
-import { FormGrid } from "@/components/FormGrid"
-import { DashboardHeader } from "@/components/DashboardHeader"
+"use client"
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
 
-
-export default function HomePage() {
-
-
+export default function Home() {
   return (
-    <div className="container mx-auto px-4 py-8">
-      <DashboardHeader />
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-blue-100 to-white">
+      <main className="text-center">
+        <h1 className="text-4xl font-bold mb-6">FormBuilder</h1>
 
-      <Suspense fallback={<div>Cargando formularios...</div>}>
-        <FormGrid />
-      </Suspense>
+        <div className="space-x-4">
+          <Button asChild>
+            <Link href="/login">Login</Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link href="/dashboard">Go to Dashboard</Link>
+          </Button>
+        </div>
+      </main>
+      <footer className="mt-8 text-sm text-gray-500">© 2025 greenenergy. All rights reserved.</footer>
     </div>
   )
 }
+

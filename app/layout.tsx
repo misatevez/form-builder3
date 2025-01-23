@@ -1,27 +1,31 @@
-"use client";
-import { Inter } from "next/font/google";
-import "./globals.css";
-import { Navbar } from "@/components/Navbar";
-import { Toaster } from "@/components/ui/toaster";
-import { ThemeContext, defaultTheme } from "@/utils/theme";
-import React from "react";
+"use client"
+import { Inter } from "next/font/google"
+import "./globals.css"
+import { Navbar } from "@/components/Navbar"
+import { Toaster } from "@/components/ui/toaster"
+import { ThemeContext, defaultTheme } from "@/utils/theme"
+import type React from "react"
+import { AuthProvider } from "@/components/auth/AuthContext"
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ subsets: ["latin"] })
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: React.ReactNode
 }) {
   return (
     <html lang="en">
       <body className={inter.className}>
         <ThemeContext.Provider value={defaultTheme}>
-          <Navbar />
-          <main className="min-h-screen bg-background">{children}</main>
-          <Toaster />
+          <AuthProvider>
+            <Navbar />
+            <main className="min-h-screen bg-background">{children}</main>
+            <Toaster />
+          </AuthProvider>
         </ThemeContext.Provider>
       </body>
     </html>
-  );
+  )
 }
+
