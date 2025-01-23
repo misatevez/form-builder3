@@ -1,4 +1,3 @@
-// components/FormEntriesModal.tsx
 "use client"
 
 import { useState, useEffect } from "react"
@@ -24,19 +23,19 @@ import { EntryFormModal } from "./EntryFormModal"
 import { Edit, Trash2, FileText } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import jsPDF from "jspdf"
-import { saveAs } from "file-saver"
-import autoTable from "jspdf-autotable";
+import autoTable from "jspdf-autotable"
+import { useAuth } from "./auth/AuthContext"
 
-
-export function FormEntriesModal({ isOpen, onClose, form }) {
+export function FormEntriesModal({ isOpen, onClose, form, currentUser }) {
+  const { user } = useAuth()
   const [entries, setEntries] = useState([])
   const [entryModalState, setEntryModalState] = useState({ isOpen: false, entry: null, fileName: "" })
   const [createModalState, setCreateModalState] = useState({ isOpen: false, fileName: "" })
   const [isCreateAlertOpen, setIsCreateAlertOpen] = useState(false)
   const [newFileName, setNewFileName] = useState("")
   const { toast } = useToast()
-  const isAuthorized = true // Placeholder: reemplazar con la lógica real de autorización
   const { primaryColor } = useTheme()
+  const isAuthorized = user?.email === "misatevez@gmail.com"
 
   useEffect(() => {
     if (isOpen && form) {
@@ -45,16 +44,26 @@ export function FormEntriesModal({ isOpen, onClose, form }) {
   }, [isOpen, form])
 
   async function fetchEntries() {
-    const { data, error } = await supabase
+    let query = supabase
       .from("form_entries")
-      .select("*")
+      .select(`
+        *,
+        auth_users:user_id(email)
+      `)
       .eq("form_id", form.id)
       .order("created_at", { ascending: false })
+
+    if (user?.email !== "misatevez@gmail.com") {
+      query = query.eq("user_id", user?.id)
+    }
+
+    const { data, error } = await query
 
     if (error) {
       console.error("Error fetching entries:", error)
     } else {
       setEntries(data)
+      console.log(data);
     }
   }
 
@@ -74,26 +83,6 @@ export function FormEntriesModal({ isOpen, onClose, form }) {
     }
   }
 
-  const handleDeleteForm = async () => {
-    try {
-      await supabase.from("forms").delete().eq("id", form.id)
-      toast({
-        title: "Form deleted",
-        description: "The form has been successfully deleted.",
-        duration: 3000,
-      })
-      onClose()
-    } catch (error) {
-      console.error("Error deleting form:", error)
-      toast({
-        title: "Error deleting form",
-        description: "There was a problem deleting the form. Please try again.",
-        variant: "destructive",
-        duration: 5000,
-      })
-    }
-  }
-
   const handleDeleteEntry = async (entryId) => {
     try {
       await supabase.from("form_entries").delete().eq("id", entryId)
@@ -102,7 +91,7 @@ export function FormEntriesModal({ isOpen, onClose, form }) {
         description: "La entrada ha sido eliminada exitosamente.",
         duration: 3000,
       })
-      fetchEntries() // Refrescar la lista de entradas
+      fetchEntries()
     } catch (error) {
       console.error("Error al eliminar la entrada:", error)
       toast({
@@ -115,92 +104,68 @@ export function FormEntriesModal({ isOpen, onClose, form }) {
   }
 
   const handleExportToPDF = (entry) => {
-    console.log("Exporting entry to PDF:", entry);
     try {
-      const doc = new jsPDF();
-  
-      // Título principal del PDF
-      doc.setFontSize(18);
-      doc.setTextColor(40);
-      doc.text(`Entrada: ${entry.file_name}`, 10, 10);
-  
-      // Subtítulo con el nombre del formulario
-      doc.setFontSize(14);
-      doc.setTextColor(60);
-      doc.text(`Formulario: ${form.name}`, 10, 20);
-  
-      // Espaciado inicial
-      let yPos = 30;
-  
-      // Verificar si hay datos en la entrada y secciones en el formulario
+      const doc = new jsPDF()
+
+      doc.setFontSize(18)
+      doc.setTextColor(40)
+      doc.text(`Entrada: ${entry.file_name}`, 10, 10)
+
+      doc.setFontSize(14)
+      doc.setTextColor(60)
+      doc.text(`Formulario: ${form.name}`, 10, 20)
+
+      let yPos = 30
+
       if (entry.data && form.data?.sections) {
         form.data.sections.forEach((section) => {
-          // Título de la sección
-          doc.setFontSize(12);
-          doc.setFont("helvetica", "bold");
-          doc.text(section.title, 10, yPos);
-          yPos += 10;
-  
-          // Verificar si la sección tiene componentes
+          doc.setFontSize(12)
+          doc.setFont("helvetica", "bold")
+          doc.text(section.title, 10, yPos)
+          yPos += 10
+
           if (section.components.length > 0) {
-            // Preparar las columnas y filas de la tabla
-            const columns = section.components.map((component) => component.label); // Encabezados
-            const row = section.components.map(
-              (component) => entry.data[component.id] || "N/A"
-            ); // Valores
-  
-            // Dibujar la tabla con título y datos
+            const columns = section.components.map((component) => component.label)
+            const row = section.components.map((component) => entry.data[component.id] || "N/A")
+
             autoTable(doc, {
               startY: yPos,
-              head: [columns], // Encabezados de las columnas
-              body: [row], // Valores en la fila
+              head: [columns],
+              body: [row],
               styles: { fontSize: 10 },
-              headStyles: { fillColor: [40, 167, 69] }, // Color verde para la cabecera
-            });
-  
-            // Actualizar la posición Y para la próxima sección
-            yPos = doc.lastAutoTable.finalY + 10;
+              headStyles: { fillColor: [40, 167, 69] },
+            })
+
+            yPos = doc.lastAutoTable.finalY + 10
           } else {
-            // Si no hay componentes en la sección
-            doc.setFontSize(10);
-            doc.setTextColor(100);
-            doc.text("No hay datos en esta sección.", 10, yPos);
-            yPos += 10;
+            doc.setFontSize(10)
+            doc.setTextColor(100)
+            doc.text("No hay datos en esta sección.", 10, yPos)
+            yPos += 10
           }
-        });
+        })
       } else {
-        doc.setFontSize(12);
-        doc.text("No hay datos disponibles para esta entrada.", 10, yPos);
+        doc.setFontSize(12)
+        doc.text("No hay datos disponibles para esta entrada.", 10, yPos)
       }
-  
-      // Generar el archivo PDF
-      const pdfBlob = doc.output("blob");
-      const pdfUrl = URL.createObjectURL(pdfBlob);
-  
-      // Crear un enlace temporal para descargar el PDF
-      const link = document.createElement("a");
-      link.href = pdfUrl;
-      link.download = `${entry.file_name || "documento"}.pdf`;
-      link.click();
-  
-      URL.revokeObjectURL(pdfUrl);
-  
-      console.log("PDF generado y la descarga ha comenzado");
+
+      doc.save(`${entry.file_name || "documento"}.pdf`)
+
       toast({
         title: "PDF exportado",
         description: "El PDF ha sido generado y la descarga ha comenzado.",
         duration: 3000,
-      });
+      })
     } catch (error) {
-      console.error("Error generando el PDF:", error);
+      console.error("Error generando el PDF:", error)
       toast({
         title: "Error al exportar PDF",
         description: "Hubo un problema al generar el PDF. Por favor, intente de nuevo.",
         variant: "destructive",
         duration: 5000,
-      });
+      })
     }
-  };
+  }
 
   return (
     <>
@@ -229,6 +194,7 @@ export function FormEntriesModal({ isOpen, onClose, form }) {
                       <TableHead>Nombre de archivo</TableHead>
                       <TableHead>Estado</TableHead>
                       <TableHead>Fecha de creación</TableHead>
+                      {isAuthorized && <TableHead>User Email</TableHead>}
                       <TableHead>Acciones</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -238,12 +204,15 @@ export function FormEntriesModal({ isOpen, onClose, form }) {
                         <TableCell>{entry.file_name}</TableCell>
                         <TableCell>{entry.is_draft ? "Borrador" : "Publicado"}</TableCell>
                         <TableCell>{new Date(entry.created_at).toLocaleString()}</TableCell>
+                        {isAuthorized && <TableCell>{entry.auth_users?.email}</TableCell>}
                         <TableCell>
                           <Button onClick={() => handleEditEntry(entry)} variant="ghost" size="icon" className="mr-2">
                             <Edit className="h-4 w-4" />
                           </Button>
-                          
-                          {isAuthorized && (
+                          <Button onClick={() => handleExportToPDF(entry)} variant="ghost" size="icon" className="mr-2">
+                            <FileText className="h-4 w-4" />
+                          </Button>
+                          {(isAuthorized || entry.user_id === user?.id) && (
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
                                 <Button variant="ghost" size="icon" className="text-destructive">
@@ -287,11 +256,12 @@ export function FormEntriesModal({ isOpen, onClose, form }) {
           isOpen={entryModalState.isOpen}
           onClose={() => {
             setEntryModalState({ isOpen: false, entry: null })
-            fetchEntries() // Refetch entries after closing the modal
+            fetchEntries()
           }}
           form={form}
           entry={entryModalState.entry}
           fileName={entryModalState.fileName}
+          currentUser={currentUser}
         />
       )}
 
@@ -304,6 +274,7 @@ export function FormEntriesModal({ isOpen, onClose, form }) {
           }}
           form={form}
           fileName={createModalState.fileName}
+          currentUser={currentUser}
         />
       )}
 
@@ -332,3 +303,4 @@ export function FormEntriesModal({ isOpen, onClose, form }) {
     </>
   )
 }
+
