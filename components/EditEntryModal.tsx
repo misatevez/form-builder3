@@ -291,6 +291,9 @@ export function EditEntryModal({ isOpen, onClose, form, entry, fileName = "" }: 
     </div>
   `
 
+  const contentWidth = content.scrollWidth || document.documentElement.scrollWidth;
+  const contentHeight = content.scrollHeight || document.documentElement.scrollHeight;
+
     const opt = {
       margin: 0,
       filename: `${form.name} - ${localFileName}.pdf`,
@@ -303,7 +306,8 @@ export function EditEntryModal({ isOpen, onClose, form, entry, fileName = "" }: 
       },
       jsPDF: {
         unit: "mm",
-        format: "a4",
+        format: [contentWidth, contentHeight], // Tamaño dinámico basado en el contenido
+
         orientation: "portrait",
         putOnlyUsedFonts: true,
         compress: true,
