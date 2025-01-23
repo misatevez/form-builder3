@@ -4,13 +4,15 @@ import { useState, useEffect } from "react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 import { cn } from "@/lib/utils"
-import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Trash2 } from "lucide-react"
 
 interface Column {
   label: string
   key?: string
+  type?: 'text' | 'number'
+  validation?: { required?: boolean }
+  placeholder?: string
 }
 
 interface DynamicTableProps {
@@ -22,9 +24,10 @@ interface DynamicTableProps {
   validation?: {
     required?: boolean
   }
+  isPreview?: boolean
 }
 
-export default function DynamicTable({ id, label, value = [], onChange, columns, validation }: DynamicTableProps) {
+export default function DynamicTable({ id, label, value = [], onChange, columns, validation, isPreview }: DynamicTableProps) {
   const [isMobile, setIsMobile] = useState(false)
 
   useEffect(() => {
@@ -50,6 +53,11 @@ export default function DynamicTable({ id, label, value = [], onChange, columns,
     onChange(newValue)
   }
 
+  const addRow = () => {
+    const newRow = columns.map(() => "")
+    onChange([...value, newRow])
+  }
+
   if (isMobile) {
     return (
       <div className="w-full space-y-2">
@@ -63,7 +71,7 @@ export default function DynamicTable({ id, label, value = [], onChange, columns,
         </label>
         <div className="space-y-4">
           {value.map((row, rowIndex) => (
-            <Card key={rowIndex} className="p-4">
+            <div key={rowIndex} className="p-4 border rounded-md">
               <div className="space-y-3">
                 {columns.map((column, columnIndex) => (
                   <div key={columnIndex} className="space-y-1.5">
@@ -72,7 +80,7 @@ export default function DynamicTable({ id, label, value = [], onChange, columns,
                       {validation?.required && <span className="text-destructive ml-1">*</span>}
                     </label>
                     <input
-                      type="text"
+                      type={column.type === 'number' ? 'number' : 'text'}
                       value={row[columnIndex] || ""}
                       onChange={(e) => handleCellChange(rowIndex, columnIndex, e.target.value)}
                       className="w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
@@ -92,8 +100,19 @@ export default function DynamicTable({ id, label, value = [], onChange, columns,
                   </Button>
                 </div>
               </div>
-            </Card>
+            </div>
           ))}
+          {isPreview && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="w-full"
+              onClick={addRow}
+            >
+              Añadir fila
+            </Button>
+          )}
         </div>
       </div>
     )
@@ -112,8 +131,6 @@ export default function DynamicTable({ id, label, value = [], onChange, columns,
       <div className="rounded-md border">
         <ScrollArea className="w-full overflow-auto">
           <div className="min-w-[800px]">
-            {" "}
-            {/* Ensure minimum width to prevent squishing */}
             <Table>
               <TableHeader>
                 <TableRow>
@@ -121,7 +138,7 @@ export default function DynamicTable({ id, label, value = [], onChange, columns,
                     <TableHead
                       key={index}
                       className="p-2 text-xs font-medium text-left whitespace-normal"
-                      style={{ width: `${100 / columns.length}%` }} // Distribute width evenly
+                      style={{ width: `${100 / columns.length}%` }}
                     >
                       {column.label}
                       {validation?.required && <span className="text-destructive ml-1">*</span>}
@@ -133,13 +150,14 @@ export default function DynamicTable({ id, label, value = [], onChange, columns,
               <TableBody>
                 {value.map((row, rowIndex) => (
                   <TableRow key={rowIndex}>
-                    {columns.map((_, columnIndex) => (
+                    {columns.map((column, columnIndex) => (
                       <TableCell key={columnIndex} className="p-2">
                         <input
-                          type="text"
+                          type={column.type === 'number' ? 'number' : 'text'}
                           value={row[columnIndex] || ""}
                           onChange={(e) => handleCellChange(rowIndex, columnIndex, e.target.value)}
                           className="w-full min-w-0 flex-1 bg-transparent p-0 text-sm placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                          placeholder={column.placeholder}
                         />
                       </TableCell>
                     ))}
@@ -162,7 +180,16 @@ export default function DynamicTable({ id, label, value = [], onChange, columns,
           <ScrollBar orientation="horizontal" />
         </ScrollArea>
       </div>
+      {actions.canAdd && !isPreview && (
+        <Button
+          onClick={addRow}
+          type="button"
+          className="mt-2"
+        >
+          <Plus size={16} className="inline-block mr-2" />
+          Añadir fila
+        </Button>
+      )}
     </div>
-  )
+  );
 }
-

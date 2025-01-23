@@ -27,4 +27,3 @@ const TextArea: React.FC<TextAreaProps> = ({ id, label, value, onChange, placeho
 }
 
 export default TextArea
-

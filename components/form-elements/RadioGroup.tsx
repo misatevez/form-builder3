@@ -30,4 +30,3 @@ const RadioGroup: React.FC<RadioGroupProps> = ({ id, label, value, onChange, val
 }
 
 export default RadioGroup
-

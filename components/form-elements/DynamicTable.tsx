@@ -1,167 +1,195 @@
-import React, { useState } from 'react';
-import { FormComponent, TableColumn, TableValidation, TableActions } from '../../types/form';
-import { Plus, Trash2, ArrowUp, ArrowDown } from 'lucide-react';
-import { Button } from "@/components/ui/button";
+"use client"
 
-interface DynamicTableProps extends FormComponent {
-  value?: any[][];
-  onChange: (value: any[][]) => void;
-  columns?: TableColumn[];
-  validation?: TableValidation;
-  actions?: TableActions;
-  isPreview?: boolean;
+import { useState, useEffect } from "react"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
+import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
+import { Trash2, Plus } from "lucide-react"
+
+interface Column {
+  label: string
+  key?: string
+  type?: 'text' | 'number'
+  validation?: { required?: boolean }
+  placeholder?: string
 }
 
-export function DynamicTable({
-  id,
-  label,
-  value = [],
-  onChange,
-  validation = {},
-  columns = [],
-  actions = { canAdd: true, canDelete: true, canReorder: true },
-  isPreview = false,
-}: DynamicTableProps) {
-  const [currentPage, setCurrentPage] = useState(1);
-  const rowsPerPage = 10;
+interface DynamicTableProps {
+  id: string
+  label: string
+  value: any[][]
+  onChange: (value: any[][]) => void
+  columns: Column[]
+  validation?: {
+    required?: boolean
+  }
+  isPreview?: boolean
+}
+
+export default function DynamicTable({ id, label, value = [], onChange, columns, validation, isPreview }: DynamicTableProps) {
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+    checkMobile()
+    window.addEventListener("resize", checkMobile)
+    return () => window.removeEventListener("resize", checkMobile)
+  }, [])
+
+  const handleCellChange = (rowIndex: number, columnIndex: number, cellValue: string) => {
+    const newValue = [...value]
+    if (!newValue[rowIndex]) {
+      newValue[rowIndex] = columns.map(() => "")
+    }
+    newValue[rowIndex][columnIndex] = cellValue
+    onChange(newValue)
+  }
+
+  const handleDeleteRow = (rowIndex: number) => {
+    const newValue = value.filter((_, index) => index !== rowIndex)
+    onChange(newValue)
+  }
 
   const addRow = () => {
-    const newRow = columns.map(() => '');
-    onChange([...value, newRow]);
-  };
+    const newRow = columns.map(() => "")
+    onChange([...value, newRow])
+  }
 
-  const removeRow = (index: number) => {
-    const newValue = [...value];
-    newValue.splice(index, 1);
-    onChange(newValue);
-  };
-
-  const updateCell = (rowIndex: number, colIndex: number, newValue: any) => {
-    const newData = [...value];
-    if (!newData[rowIndex]) {
-      newData[rowIndex] = columns.map(() => '');
-    }
-    newData[rowIndex][colIndex] = newValue;
-    onChange(newData);
-  };
-
-  const startIndex = (currentPage - 1) * rowsPerPage;
-  const endIndex = startIndex + rowsPerPage;
-  const displayedRows = value.slice(startIndex, endIndex);
-
-  return (
-    <div className="mb-6">
-      {label && (
-        <div className="mb-4">
-          <h3 className="text-lg font-semibold">{label}</h3>
-          {validation?.description && (
-            <p className="text-sm text-gray-600 mt-1">{validation.description}</p>
+  if (isMobile) {
+    return (
+      <div className="w-full space-y-2">
+        <label
+          htmlFor={id}
+          className={cn("text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70", {
+            "text-destructive": validation?.required,
+          })}
+        >
+          {label} {validation?.required && <span className="text-destructive">*</span>}
+        </label>
+        <div className="space-y-4">
+          {value.map((row, rowIndex) => (
+            <div key={rowIndex} className="p-4 border rounded-md">
+              <div className="space-y-3">
+                {columns.map((column, columnIndex) => (
+                  <div key={columnIndex} className="space-y-1.5">
+                    <label className="text-xs font-medium text-muted-foreground">
+                      {column.label}
+                      {validation?.required && <span className="text-destructive ml-1">*</span>}
+                    </label>
+                    <input
+                      type={column.type === 'number' ? 'number' : 'text'}
+                      value={row[columnIndex] || ""}
+                      onChange={(e) => handleCellChange(rowIndex, columnIndex, e.target.value)}
+                      className="w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    />
+                  </div>
+                ))}
+                <div className="pt-2">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="text-destructive hover:text-destructive/90 hover:bg-destructive/10 w-full"
+                    onClick={() => handleDeleteRow(rowIndex)}
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Eliminar fila
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ))}
+          { !isPreview && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="w-full"
+              onClick={addRow}
+            >
+              Añadir fila
+            </Button>
           )}
         </div>
-      )}
-      
-      <div className="border rounded-lg overflow-hidden">
-        <table className="w-full border-collapse">
-          <thead>
-            <tr className="bg-gray-50">
-              {columns.map((column, index) => (
-                <th
-                  key={index}
-                  className={`px-4 py-3 text-left text-sm font-medium text-gray-900 border-b ${
-                    index === columns.length - 1 ? 'border-r-0' : 'border-r'
-                  }`}
-                >
-                  {column.label}
-                  {column.validation?.required && (
-                    <span className="text-red-500 ml-1">*</span>
-                  )}
-                </th>
-              ))}
-              {actions.canDelete && (
-                <th className="w-20 px-4 py-3 text-left text-sm font-medium text-gray-900 border-b">
-                  Acciones
-                </th>
-              )}
-            </tr>
-          </thead>
-          <tbody>
-            {displayedRows.length > 0 ? (
-              displayedRows.map((row, rowIndex) => (
-                <tr key={rowIndex} className="border-b last:border-b-0">
-                  {columns.map((column, colIndex) => (
-                    <td
-                      key={colIndex}
-                      className="px-4 py-3 text-sm text-gray-900 border-r last:border-r-0"
-                    >
-                      <input
-                        type={column.type === 'number' ? 'number' : 'text'}
-                        value={row[colIndex] || ''}
-                        onChange={(e) => updateCell(rowIndex + startIndex, colIndex, e.target.value)}
-                        className="w-full p-1 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        required={column.validation?.required}
-                        placeholder={column.placeholder}
-                      />
-                    </td>
-                  ))}
-                  {actions.canDelete && (
-                    <td className="px-4 py-3 text-sm">
-                      <button
-                        onClick={() => removeRow(rowIndex + startIndex)}
-                        className="p-1 text-red-600 hover:text-red-800"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </td>
-                  )}
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td
-                  colSpan={columns.length + (actions.canDelete ? 1 : 0)}
-                  className="px-4 py-8 text-center text-gray-500"
-                >
-                  No hay datos disponibles. Añade una fila para comenzar.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
       </div>
+    )
+  }
 
-      {(actions.canAdd || isPreview) && (
+  return (
+    <div className="w-full space-y-2">
+      <label
+        htmlFor={id}
+        className={cn("text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70", {
+          "text-destructive": validation?.required,
+        })}
+      >
+        {label} {validation?.required && <span className="text-destructive">*</span>}
+      </label>
+      <div className="rounded-md border">
+        <ScrollArea className="w-full overflow-auto">
+          <div className="min-w-[800px]">
+            <Table className="table-auto">
+              <TableHeader>
+                <TableRow>
+                  {columns.map((column, index) => (
+                    <TableHead
+                      key={index}
+                      className="p-2 text-xs font-medium text-left whitespace-normal"
+                      style={{ width: `${100 / columns.length}%` }}
+                    >
+                      {column.label}
+                      {validation?.required && <span className="text-destructive ml-1">*</span>}
+                    </TableHead>
+                  ))}
+                  <TableHead className="w-[50px]"></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {value.map((row, rowIndex) => (
+                  <TableRow key={rowIndex}>
+                    {columns.map((column, columnIndex) => (
+                      <TableCell key={columnIndex} className="p-2">
+                        <input
+                          type={column.type === 'number' ? 'number' : 'text'}
+                          value={row[columnIndex] || ""}
+                          onChange={(e) => handleCellChange(rowIndex, columnIndex, e.target.value)}
+                          className="w-full min-w-0 flex-1 bg-transparent p-0 text-sm placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                          placeholder={column.placeholder}
+                        />
+                      </TableCell>
+                    ))}
+                    <TableCell className="w-[50px] p-2">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-destructive hover:text-destructive/90"
+                        onClick={() => handleDeleteRow(rowIndex)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+          <ScrollBar orientation="horizontal" />
+        </ScrollArea>
+      </div>
+      { !isPreview && (
         <Button
           onClick={addRow}
           type="button"
+          className="mt-2"
         >
           <Plus size={16} className="inline-block mr-2" />
-          Añadir
+          Añadir fila
         </Button>
-      )}
-
-      {value.length > rowsPerPage && (
-        <div className="mt-4 flex items-center justify-between">
-          <button
-            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-            disabled={currentPage === 1}
-            className="px-3 py-1 text-sm bg-white border rounded-md disabled:opacity-50"
-          >
-            Anterior
-          </button>
-          <span className="text-sm text-gray-600">
-            Página {currentPage} de {Math.ceil(value.length / rowsPerPage)}
-          </span>
-          <button
-            onClick={() => setCurrentPage(Math.min(Math.ceil(value.length / rowsPerPage), currentPage + 1))}
-            disabled={endIndex >= value.length}
-            className="px-3 py-1 text-sm bg-white border rounded-md disabled:opacity-50"
-          >
-            Siguiente
-          </button>
-        </div>
       )}
     </div>
   );
 }
-
-export default DynamicTable;

@@ -540,4 +540,3 @@ export function EntryFormModal({ isOpen, onClose, form, existingEntry = null, fi
     </Dialog>
   )
 }
-
