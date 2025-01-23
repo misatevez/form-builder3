@@ -29,6 +29,7 @@ import { useAuth } from "./auth/AuthContext"
 export function FormEntriesModal({ isOpen, onClose, form, currentUser }) {
   const { user } = useAuth()
   const [entries, setEntries] = useState([])
+  const [userEmails, setUserEmails] = useState({})
   const [entryModalState, setEntryModalState] = useState({ isOpen: false, entry: null, fileName: "" })
   const [createModalState, setCreateModalState] = useState({ isOpen: false, fileName: "" })
   const [isCreateAlertOpen, setIsCreateAlertOpen] = useState(false)
@@ -46,10 +47,7 @@ export function FormEntriesModal({ isOpen, onClose, form, currentUser }) {
   async function fetchEntries() {
     let query = supabase
       .from("form_entries")
-      .select(`
-        *,
-        auth_users:user_id(email)
-      `)
+      .select("*")
       .eq("form_id", form.id)
       .order("created_at", { ascending: false })
 
@@ -63,7 +61,23 @@ export function FormEntriesModal({ isOpen, onClose, form, currentUser }) {
       console.error("Error fetching entries:", error)
     } else {
       setEntries(data)
-      console.log(data);
+      if (isAuthorized) {
+        fetchUserEmails(data.map((entry) => entry.user_id))
+      }
+    }
+  }
+
+  async function fetchUserEmails(userIds) {
+    const { data, error } = await supabase.from("users").select("id, email").in("id", userIds)
+
+    if (error) {
+      console.error("Error fetching user emails:", error)
+    } else {
+      const emailMap = {}
+      data.forEach((user) => {
+        emailMap[user.id] = user.email
+      })
+      setUserEmails(emailMap)
     }
   }
 
@@ -204,14 +218,12 @@ export function FormEntriesModal({ isOpen, onClose, form, currentUser }) {
                         <TableCell>{entry.file_name}</TableCell>
                         <TableCell>{entry.is_draft ? "Borrador" : "Publicado"}</TableCell>
                         <TableCell>{new Date(entry.created_at).toLocaleString()}</TableCell>
-                        {isAuthorized && <TableCell>{entry.auth_users?.email}</TableCell>}
+                        {isAuthorized && <TableCell>{userEmails[entry.user_id] || "Loading..."}</TableCell>}
                         <TableCell>
                           <Button onClick={() => handleEditEntry(entry)} variant="ghost" size="icon" className="mr-2">
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button onClick={() => handleExportToPDF(entry)} variant="ghost" size="icon" className="mr-2">
-                            <FileText className="h-4 w-4" />
-                          </Button>
+                         
                           {(isAuthorized || entry.user_id === user?.id) && (
                             <AlertDialog>
                               <AlertDialogTrigger asChild>

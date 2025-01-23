@@ -22,7 +22,7 @@ import { useTheme } from "@/utils/theme"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 import { cn } from "@/lib/utils"
 import { v4 as uuidv4 } from "uuid"
-
+import { useAuth } from "./auth/AuthContext"
 interface EntryFormModalProps {
   isOpen: boolean
   onClose: () => void
@@ -38,6 +38,7 @@ export function EditEntryModal({ isOpen, onClose, form, entry, fileName = "" }: 
   const [localFileName, setLocalFileName] = useState(fileName)
   const [html2pdf, setHtml2pdf] = useState<any>(null)
   const [uploading, setUploading] = useState(false)
+  const { user, loading } = useAuth()
 
   useEffect(() => {
     const loadHtml2pdf = async () => {
@@ -84,6 +85,7 @@ export function EditEntryModal({ isOpen, onClose, form, entry, fileName = "" }: 
         data: formData,
         is_draft: isDraft,
         file_name: localFileName,
+        user_id: user?.id
       })
       .eq("id", entry.id)
 

@@ -20,6 +20,7 @@ import DynamicTable from "./form-elements/DynamicTable"
 import { useToast } from "@/components/ui/use-toast"
 import { useTheme } from "@/utils/theme"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
+import { useAuth } from "./auth/AuthContext"
 
 interface EntryFormModalProps {
   isOpen: boolean
@@ -30,6 +31,7 @@ interface EntryFormModalProps {
 }
 
 export function EntryFormModal({ isOpen, onClose, form, existingEntry = null, fileName = "" }: EntryFormModalProps) {
+  const { user, loading } = useAuth()
   const [formData, setFormData] = useState(() => {
     if (existingEntry && existingEntry.data) {
       return existingEntry.data
@@ -281,6 +283,7 @@ export function EntryFormModal({ isOpen, onClose, form, existingEntry = null, fi
     } else {
       result = await supabase.from("form_entries").insert({
         form_id: form.id,
+        user_id: user?.id,
         ...entryData,
       })
     }
