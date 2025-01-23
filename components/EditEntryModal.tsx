@@ -149,9 +149,11 @@ export function EditEntryModal({ isOpen, onClose, form, entry, fileName = "" }: 
               throw error
             }
 
-            const publicUrl = supabase.storage.from("fsp-files").getPublicUrl(fileName).data.publicUrl
+            const {
+              data: { publicUrl },
+            } = supabase.storage.from("fsp-files").getPublicUrl(fileName)
 
-            return publicUrl
+            return { publicUrl }
           })
 
           const uploadedUrls = await Promise.all(uploadPromises)
@@ -207,6 +209,7 @@ export function EditEntryModal({ isOpen, onClose, form, entry, fileName = "" }: 
       return
     }
 
+    console.log("FormData before PDF generation:", JSON.stringify(formData, null, 2))
     const content = document.createElement("div")
     content.innerHTML = `
       <style>
@@ -340,7 +343,20 @@ export function EditEntryModal({ isOpen, onClose, form, entry, fileName = "" }: 
                     <div class="field">
                       <div class="field-label">${component.label}</div>
                       <div class="field-value">
-                        ${(value || []).map((photo: string) => `<img src="${photo}" alt="Uploaded photo" />`).join("")}
+                        ${
+                          Array.isArray(value)
+                            ? value
+                                .map((photo: any) => {
+                                  if (typeof photo === "string") {
+                                    return `<img src="${photo}" alt="Uploaded photo" />`
+                                  } else if (photo && photo.url) {
+                                    return `<img src="${photo.url}" alt="Uploaded photo (${photo.category})" />`
+                                  }
+                                  return ""
+                                })
+                                .join("")
+                            : ""
+                        }
                       </div>
                     </div>
                   `
@@ -377,13 +393,24 @@ export function EditEntryModal({ isOpen, onClose, form, entry, fileName = "" }: 
       await Promise.all(
         Array.from(content.getElementsByTagName("img")).map(
           (img) =>
-            img.complete ||
             new Promise((resolve) => {
-              img.onload = resolve
-              img.onerror = resolve // Also handle error case
+              if (img.complete) {
+                resolve(null)
+              } else {
+                img.onload = () => resolve(null)
+                img.onerror = () => {
+                  console.error(`Failed to load image: ${img.src}`)
+                  img.src =
+                    "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" // 1x1 transparent PNG
+                  resolve(null)
+                }
+              }
             }),
         ),
       )
+
+      // Añadir un pequeño retraso para asegurar que las imágenes se hayan renderizado completamente
+      await new Promise((resolve) => setTimeout(resolve, 1000))
 
       const opt = {
         margin: 10,
@@ -392,7 +419,7 @@ export function EditEntryModal({ isOpen, onClose, form, entry, fileName = "" }: 
         html2canvas: {
           scale: 2,
           useCORS: true,
-          logging: false,
+          logging: true,
         },
         jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
       }
