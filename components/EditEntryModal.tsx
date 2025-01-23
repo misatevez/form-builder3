@@ -136,145 +136,145 @@ export function EditEntryModal({ isOpen, onClose, form, entry, fileName = "" }: 
         box-sizing: border-box;
       }
       .header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 30px;
-          border-bottom: 2px solid #2F4858;
-          padding-bottom: 10px;
-        }
-        h1 {
-          color: #2F4858;
-          margin: 0;
-          font-size: 24px;
-        }
-        .file-name {
-          font-size: 1.2em;
-          color: #666;
-        }
-        h2 {
-          color: #2F4858;
-          margin-top: 30px;
-          margin-bottom: 20px;
-          font-size: 20px;
-          border-bottom: 1px solid #2F4858;
-          padding-bottom: 5px;
-        }
-        .section {
-          margin-bottom: 40px;
-        }
-        .field {
-          margin-bottom: 20px;
-        }
-        .field-label {
-          font-weight: bold;
-          margin-bottom: 5px;
-          color: #2F4858;
-        }
-        .field-value {
-          background-color: #f9f9f9;
-          padding: 10px;
-          border-radius: 4px;
-        }
-        table {
-          width: 100%;
-          border-collapse: collapse;
-          margin-top: 10px;
-          margin-bottom: 20px;
-        }
-        th, td {
-          border: 1px solid #ddd;
-          padding: 12px;
-          text-align: left;
-        }
-        th {
-          background-color: #f2f2f2;
-          font-weight: bold;
-          color: #2F4858;
-        }
-        .table-title {
-          font-weight: bold;
-          margin-bottom: 10px;
-          color: #2F4858;
-        }
-        img {
-          max-width: 100%;
-          height: auto;
-          margin-top: 10px;
-          border: 1px solid #ddd;
-          border-radius: 4px;
-        }
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        border-bottom: 2px solid #2F4858;
+        padding-bottom: 10px;
+      }
+      h1 {
+        color: #2F4858;
+        margin: 0;
+        font-size: 24px;
+      }
+      .file-name {
+        font-size: 1.2em;
+        color: #666;
+      }
+      h2 {
+        color: #2F4858;
+        margin-top: 30px;
+        margin-bottom: 20px;
+        font-size: 20px;
+        border-bottom: 1px solid #2F4858;
+        padding-bottom: 5px;
+      }
+      .section {
+        margin-bottom: 40px;
+      }
+      .field {
+        margin-bottom: 20px;
+      }
+      .field-label {
+        font-weight: bold;
+        margin-bottom: 5px;
+        color: #2F4858;
+      }
+      .field-value {
+        background-color: #f9f9f9;
+        padding: 10px;
+        border-radius: 4px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+        margin-bottom: 20px;
+      }
+      th, td {
+        border: 1px solid #ddd;
+        padding: 12px;
+        text-align: left;
+      }
+      th {
+        background-color: #f2f2f2;
+        font-weight: bold;
+        color: #2F4858;
+      }
+      .table-title {
+        font-weight: bold;
+        margin-bottom: 10px;
+        color: #2F4858;
+      }
+      img {
+        max-width: 100%;
+        height: auto;
+        margin-top: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+      }
     </style>
     <div class="container">
       <div class="header">
-          <h1>${form.name}</h1>
-          <div class="file-name">${localFileName}</div>
-        </div>
-        ${form.data.sections
-          .map(
-            (section) => `
-          <div class="section">
-            <h2>${section.title}</h2>
-            ${section.components
-              .map((component) => {
-                const value = formData[component.id]
-                switch (component.type) {
-                  case "dynamicTable":
-                    return `
-                    <div class="field">
-                      <div class="table-title">${component.label}</div>
-                      <table>
-                        <thead>
+        <h1>${form.name}</h1>
+        <div class="file-name">${localFileName}</div>
+      </div>
+      ${form.data.sections
+        .map(
+          (section) => `
+        <div class="section">
+          <h2>${section.title}</h2>
+          ${section.components
+            .map((component) => {
+              const value = formData[component.id]
+              switch (component.type) {
+                case "dynamicTable":
+                  return `
+                  <div class="field">
+                    <div class="table-title">${component.label}</div>
+                    <table>
+                      <thead>
+                        <tr>
+                          ${component.columns.map((col) => `<th>${col.label}</th>`).join("")}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        ${(value || [])
+                          .map(
+                            (row) => `
                           <tr>
-                            ${component.columns.map((col) => `<th>${col.label}</th>`).join("")}
+                            ${row.map((cell) => `<td>${cell}</td>`).join("")}
                           </tr>
-                        </thead>
-                        <tbody>
-                          ${(value || [])
-                            .map(
-                              (row) => `
-                            <tr>
-                              ${row.map((cell) => `<td>${cell}</td>`).join("")}
-                            </tr>
-                          `,
-                            )
-                            .join("")}
-                        </tbody>
-                      </table>
+                        `,
+                          )
+                          .join("")}
+                      </tbody>
+                    </table>
+                  </div>
+                `
+                case "photo":
+                  return `
+                  <div class="field">
+                    <div class="field-label">${component.label}</div>
+                    <div class="field-value">
+                      ${(value || []).map((photo) => `<img src="${photo}" alt="Uploaded photo" />`).join("")}
                     </div>
-                  `
-                  case "photo":
-                    return `
-                    <div class="field">
-                      <div class="field-label">${component.label}</div>
-                      <div class="field-value">
-                        ${(value || []).map((photo) => `<img src="${photo}" alt="Uploaded photo" />`).join("")}
-                      </div>
+                  </div>
+                `
+                case "signature":
+                  return `
+                  <div class="field">
+                    <div class="field-label">${component.label}</div>
+                    <div class="field-value">
+                      <img src="${value}" alt="Signature" />
                     </div>
-                  `
-                  case "signature":
-                    return `
-                    <div class="field">
-                      <div class="field-label">${component.label}</div>
-                      <div class="field-value">
-                        <img src="${value}" alt="Signature" />
-                      </div>
-                    </div>
-                  `
-                  default:
-                    return `
-                    <div class="field">
-                      <div class="field-label">${component.label}</div>
-                      <div class="field-value">${value || ""}</div>
-                    </div>
-                  `
-                }
-              })
-              .join("")}
-          </div>
-        `,
-          )
-          .join("")}
+                  </div>
+                `
+                default:
+                  return `
+                  <div class="field">
+                    <div class="field-label">${component.label}</div>
+                    <div class="field-value">${value || ""}</div>
+                  </div>
+                `
+              }
+            })
+            .join("")}
+        </div>
+      `,
+        )
+        .join("")}
     </div>
     `
   
@@ -290,16 +290,22 @@ export function EditEntryModal({ isOpen, onClose, form, entry, fileName = "" }: 
       html2canvas: {
         scale: 2,
         useCORS: true,
+        logging: false,
+        scrollY: -window.scrollY,
       },
       jsPDF: {
         unit: "px",
         format: [contentWidth, contentHeight],
         orientation: "portrait",
+        compress: true,
       },
+      pagebreak: { mode: ["avoid-all", "css", "legacy"] },
     }
   
     html2pdf().from(content).set(opt).save()
   }
+  
+  
   
   
 
