@@ -523,7 +523,7 @@ export function EntryFormModal({ isOpen, onClose, form, existingEntry = null, fi
               Guardar como borrador
             </Button>
             <Button type="submit" className=" text-white">
-              Guardar
+            Guardar y exportar
             </Button>
             <Button
               type="button"

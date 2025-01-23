@@ -682,7 +682,7 @@ export function EditEntryModal({ isOpen, onClose, form, entry, fileName = "" }: 
               }}
               className="text-white w-full sm:w-auto"
             >
-              Guardar
+              Guardar y publicar
             </Button>
             <Button
               type="button"
