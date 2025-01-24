@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { supabase } from "@/lib/supabase"
 import { Button } from "@/components/ui/button"
@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { useTheme } from "@/utils/theme"
 import { EntryFormModal } from "./EntryFormModal"
-import { Edit, Trash2, FileText } from "lucide-react"
+import { Edit, Trash2, FileText, ArrowUpDown } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import jsPDF from "jspdf"
 import autoTable from "jspdf-autotable"
@@ -34,6 +34,9 @@ export function FormEntriesModal({ isOpen, onClose, form, currentUser }) {
   const [createModalState, setCreateModalState] = useState({ isOpen: false, fileName: "" })
   const [isCreateAlertOpen, setIsCreateAlertOpen] = useState(false)
   const [newFileName, setNewFileName] = useState("")
+  const [sortColumn, setSortColumn] = useState(null)
+  const [sortDirection, setSortDirection] = useState("asc")
+  const [searchTerm, setSearchTerm] = useState("")
   const { toast } = useToast()
   const { primaryColor } = useTheme()
   const isAuthorized = user?.email === "apps@greenenergy.cr"
@@ -181,6 +184,36 @@ export function FormEntriesModal({ isOpen, onClose, form, currentUser }) {
     }
   }
 
+  const filteredEntries = useMemo(() => {
+    return entries.filter(
+      (entry) =>
+        entry.file_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (isAuthorized && userEmails[entry.user_id]?.toLowerCase().includes(searchTerm.toLowerCase())),
+    )
+  }, [entries, searchTerm, isAuthorized, userEmails])
+
+  const sortedEntries = useMemo(() => {
+    if (!sortColumn) return filteredEntries
+
+    return [...filteredEntries].sort((a, b) => {
+      if (sortColumn === "email") {
+        return (userEmails[a.user_id] || "").localeCompare(userEmails[b.user_id] || "")
+      }
+      if (a[sortColumn] < b[sortColumn]) return sortDirection === "asc" ? -1 : 1
+      if (a[sortColumn] > b[sortColumn]) return sortDirection === "asc" ? 1 : -1
+      return 0
+    })
+  }, [filteredEntries, sortColumn, sortDirection, userEmails])
+
+  const handleSort = (column) => {
+    if (sortColumn === column) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc")
+    } else {
+      setSortColumn(column)
+      setSortDirection("asc")
+    }
+  }
+
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
@@ -189,7 +222,15 @@ export function FormEntriesModal({ isOpen, onClose, form, currentUser }) {
             <DialogTitle>Entradas para: {form?.name}</DialogTitle>
           </DialogHeader>
           <div className="mt-4">
-            {entries.length === 0 ? (
+            <div className="mb-4">
+              <Input
+                type="text"
+                placeholder="Buscar por nombre de archivo o email"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            {sortedEntries.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
                 <p>No hay entradas para este formulario.</p>
                 <Button
@@ -206,15 +247,31 @@ export function FormEntriesModal({ isOpen, onClose, form, currentUser }) {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="w-1/3">Nombre de archivo</TableHead>
-                        <TableHead className="w-1/6">Estado</TableHead>
-                        <TableHead className="w-1/4 hidden sm:table-cell">Fecha de creación</TableHead>
-                        {isAuthorized && <TableHead className="w-1/4 hidden md:table-cell">User Email</TableHead>}
+                        <TableHead className="w-1/3 cursor-pointer" onClick={() => handleSort("file_name")}>
+                          Nombre de archivo {sortColumn === "file_name" && <ArrowUpDown className="inline ml-2" />}
+                        </TableHead>
+                        <TableHead className="w-1/6 cursor-pointer" onClick={() => handleSort("is_draft")}>
+                          Estado {sortColumn === "is_draft" && <ArrowUpDown className="inline ml-2" />}
+                        </TableHead>
+                        <TableHead
+                          className="w-1/4 hidden sm:table-cell cursor-pointer"
+                          onClick={() => handleSort("created_at")}
+                        >
+                          Fecha de creación {sortColumn === "created_at" && <ArrowUpDown className="inline ml-2" />}
+                        </TableHead>
+                        {isAuthorized && (
+                          <TableHead
+                            className="w-1/4 hidden md:table-cell cursor-pointer"
+                            onClick={() => handleSort("email")}
+                          >
+                            User Email {sortColumn === "email" && <ArrowUpDown className="inline ml-2" />}
+                          </TableHead>
+                        )}
                         <TableHead className="w-1/6">Acciones</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {entries.map((entry) => (
+                      {sortedEntries.map((entry) => (
                         <TableRow key={entry.id}>
                           <TableCell className="font-medium">{entry.file_name}</TableCell>
                           <TableCell>{entry.is_draft ? "Borrador" : "Publicado"}</TableCell>
@@ -231,7 +288,7 @@ export function FormEntriesModal({ isOpen, onClose, form, currentUser }) {
                               <Button onClick={() => handleEditEntry(entry)} variant="ghost" size="icon">
                                 <Edit className="h-4 w-4" />
                               </Button>
-                              
+
                               {(isAuthorized || entry.user_id === user?.id) && (
                                 <AlertDialog>
                                   <AlertDialogTrigger asChild>
