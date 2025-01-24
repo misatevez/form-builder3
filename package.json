@@ -59,6 +59,7 @@
     "react": "^18",
     "react-beautiful-dnd": "latest",
     "react-day-picker": "8.10.1",
+    "react-device-detect": "^2.2.3",
     "react-dom": "^18",
     "react-hook-form": "^7.54.1",
     "react-quill": "latest",
