@@ -1,8 +1,10 @@
+"use client"
+
 import type React from "react"
-import { useRef, useState, useEffect, useCallback } from "react"
+import { useRef, useState, useEffect } from "react"
 import type { FormComponent } from "../../types/form"
 import { Button } from "@/components/ui/button"
-import { isMobile } from "react-device-detect"
+import SignatureCanvas from "react-signature-canvas"
 
 interface SignatureProps extends FormComponent {
   value: string
@@ -10,79 +12,28 @@ interface SignatureProps extends FormComponent {
 }
 
 const Signature: React.FC<SignatureProps> = ({ id, label, value, onChange, validation }) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null)
-  const [isDrawing, setIsDrawing] = useState(false)
-  const [useImageUpload, setUseImageUpload] = useState(false)
+  const sigCanvas = useRef<SignatureCanvas>(null)
+  const [imageURL, setImageURL] = useState<string | null>(null)
 
   useEffect(() => {
-    const canvas = canvasRef.current
-    if (canvas) {
-      const ctx = canvas.getContext("2d")
-      if (ctx) {
-        ctx.clearRect(0, 0, canvas.width, canvas.height)
-      }
+    if (value) {
+      setImageURL(value)
     }
-  }, [])
+  }, [value])
 
-  const startDrawing = useCallback((e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
-    setIsDrawing(true)
-    draw(e)
-  }, [])
-
-  const stopDrawing = useCallback(() => {
-    setIsDrawing(false)
-    saveSignature()
-  }, [])
-
-  const draw = useCallback(
-    (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
-      if (!isDrawing) return
-      const canvas = canvasRef.current
-      const ctx = canvas?.getContext("2d")
-      if (ctx && canvas) {
-        const rect = canvas.getBoundingClientRect()
-        let x, y
-        if ("touches" in e) {
-          x = e.touches[0].clientX - rect.left
-          y = e.touches[0].clientY - rect.top
-        } else {
-          x = e.clientX - rect.left
-          y = e.clientY - rect.top
-        }
-        ctx.lineWidth = 2
-        ctx.lineCap = "round"
-        ctx.strokeStyle = "#000"
-        ctx.lineTo(x, y)
-        ctx.stroke()
-        ctx.beginPath()
-        ctx.moveTo(x, y)
-      }
-    },
-    [isDrawing],
-  )
-
-  const saveSignature = useCallback(() => {
-    const canvas = canvasRef.current
-    if (canvas) {
-      try {
-        const dataUrl = canvas.toDataURL()
-        onChange(dataUrl)
-      } catch (error) {
-        console.error("Failed to save signature:", error)
-      }
-    }
-  }, [onChange])
-
-  const clearSignature = useCallback(() => {
-    const canvas = canvasRef.current
-    if (canvas) {
-      const ctx = canvas.getContext("2d")
-      if (ctx) {
-        ctx.clearRect(0, 0, canvas.width, canvas.height)
-      }
-    }
+  const clear = () => {
+    sigCanvas.current?.clear()
+    setImageURL(null)
     onChange("")
-  }, [onChange])
+  }
+
+  const save = () => {
+    if (sigCanvas.current) {
+      const dataURL = sigCanvas.current.toDataURL("image/png")
+      setImageURL(dataURL)
+      onChange(dataURL)
+    }
+  }
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -90,6 +41,7 @@ const Signature: React.FC<SignatureProps> = ({ id, label, value, onChange, valid
       const reader = new FileReader()
       reader.onload = (event) => {
         if (event.target?.result) {
+          setImageURL(event.target.result as string)
           onChange(event.target.result as string)
         }
       }
@@ -103,65 +55,50 @@ const Signature: React.FC<SignatureProps> = ({ id, label, value, onChange, valid
         {label}
         {validation?.required && <span className="text-red-500 ml-1">*</span>}
       </label>
-      {isMobile ? (
-        <div>
-          <p className="text-sm text-gray-500 mb-2">
-            Para firmar en dispositivos móviles, por favor suba una imagen de su firma.
-          </p>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleImageUpload}
-            className="block w-full text-sm text-gray-500
-              file:mr-4 file:py-2 file:px-4
-              file:rounded-full file:border-0
-              file:text-sm file:font-semibold
-              file:bg-blue-50 file:text-blue-700
-              hover:file:bg-blue-100"
-          />
-        </div>
-      ) : (
-        <>
-          <canvas
-            ref={canvasRef}
-            width={300}
-            height={150}
-            className="border rounded cursor-crosshair"
-            onMouseDown={startDrawing}
-            onMouseUp={stopDrawing}
-            onMouseOut={stopDrawing}
-            onMouseMove={draw}
-            onTouchStart={startDrawing}
-            onTouchEnd={stopDrawing}
-            onTouchMove={draw}
-          />
-          <div className="mt-2 space-x-2">
-            <Button onClick={clearSignature} variant="outline">
-              Limpiar firma
-            </Button>
-            <Button onClick={() => setUseImageUpload(!useImageUpload)} variant="outline">
-              {useImageUpload ? "Usar canvas" : "Subir imagen"}
-            </Button>
-          </div>
-          {useImageUpload && (
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleImageUpload}
-              className="mt-2 block w-full text-sm text-gray-500
-                file:mr-4 file:py-2 file:px-4
-                file:rounded-full file:border-0
-                file:text-sm file:font-semibold
-                file:bg-blue-50 file:text-blue-700
-                hover:file:bg-blue-100"
-            />
-          )}
-        </>
-      )}
-      {value && (
+      <div
+        style={{
+          touchAction: "none",
+          border: "1px solid #ccc",
+          borderRadius: "4px",
+        }}
+      >
+        <SignatureCanvas
+          ref={sigCanvas}
+          canvasProps={{
+            style: {
+              width: "100%",
+              height: "150px",
+            },
+            width: 300,
+            height: 150,
+          }}
+        />
+      </div>
+      <div className="mt-2 space-x-2">
+        <Button onClick={clear} variant="outline">
+          Limpiar firma
+        </Button>
+        <Button onClick={save} variant="outline">
+          Guardar firma
+        </Button>
+      </div>
+      <div className="mt-2">
+        <input
+          type="file"
+          accept="image/*"
+          onChange={handleImageUpload}
+          className="block w-full text-sm text-gray-500
+            file:mr-4 file:py-2 file:px-4
+            file:rounded-full file:border-0
+            file:text-sm file:font-semibold
+            file:bg-blue-50 file:text-blue-700
+            hover:file:bg-blue-100"
+        />
+      </div>
+      {imageURL && (
         <div className="mt-2">
           <img
-            src={value || "/placeholder.svg"}
+            src={imageURL || "/placeholder.svg"}
             alt="Firma"
             className="border rounded"
             style={{ maxWidth: "300px", maxHeight: "150px" }}
