@@ -63,76 +63,84 @@ export function EntryFormModal({ isOpen, onClose, form, existingEntry = null, fi
       console.warn("PDF export is not available yet. Please try again in a moment.")
       return
     }
-  
+
     const content = document.createElement("div")
     content.innerHTML = `
     <style>
-      @page {
-        size: auto;
-        margin: 0;
-      }
       body {
         margin: 0;
         padding: 0;
         font-family: Arial, sans-serif;
-        line-height: 1.6;
+        line-height: 1.3;
         color: #333;
+        font-size: 8px;
       }
       .container {
         width: 100%;
-        padding: 20px;
+        padding: 10px;
         box-sizing: border-box;
       }
       .header {
+        
+        color: black;
+        padding: 15px;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 30px;
-        border-bottom: 2px solid #2F4858;
-        padding-bottom: 10px;
+      }
+      .logo {
+        width: 180px;
+        height: auto;
+      }
+      .header-text {
+        text-align: right;
       }
       h1 {
-        color: #2F4858;
+        color: black;
         margin: 0;
-        font-size: 24px;
+        font-size: 16px;
       }
       .file-name {
-        font-size: 1.2em;
-        color: #666;
+        font-size: 12px;
+        color: black;
+        margin-top: 5px;
       }
       h2 {
         color: #2F4858;
-        margin-top: 30px;
-        margin-bottom: 20px;
-        font-size: 20px;
+        margin-top: 15px;
+        margin-bottom: 10px;
+        font-size: 12px;
         border-bottom: 1px solid #2F4858;
         padding-bottom: 5px;
       }
       .section {
-        margin-bottom: 40px;
+        margin-bottom: 15px;
       }
       .field {
-        margin-bottom: 20px;
+        margin-bottom: 10px;
       }
       .field-label {
         font-weight: bold;
-        margin-bottom: 5px;
+        margin-bottom: 3px;
         color: #2F4858;
+        font-size: 9px;
       }
       .field-value {
         background-color: #f9f9f9;
-        padding: 10px;
-        border-radius: 4px;
+        padding: 4px;
+        border-radius: 3px;
+        font-size: 8px;
       }
       table {
         width: 100%;
         border-collapse: collapse;
         margin-top: 10px;
-        margin-bottom: 20px;
+        margin-bottom: 10px;
+        font-size: 7px;
       }
       th, td {
         border: 1px solid #ddd;
-        padding: 12px;
+        padding: 4px;
         text-align: left;
       }
       th {
@@ -142,21 +150,25 @@ export function EntryFormModal({ isOpen, onClose, form, existingEntry = null, fi
       }
       .table-title {
         font-weight: bold;
-        margin-bottom: 10px;
+        margin-bottom: 3px;
         color: #2F4858;
+        font-size: 9px;
       }
       img {
         max-width: 100%;
         height: auto;
-        margin-top: 10px;
+        margin-top: 3px;
         border: 1px solid #ddd;
-        border-radius: 4px;
+        border-radius: 2px;
       }
     </style>
     <div class="container">
       <div class="header">
-        <h1>${form.name}</h1>
-        <div class="file-name">${localFileName}</div>
+        <img src="/greenenergy-logo2.png" alt="GreenEnergy Logo" class="logo" />
+        <div class="header-text">
+          <h1>${form.name}</h1>
+          <div class="file-name">${localFileName}</div>
+        </div>
       </div>
       ${form.data.sections
         .map(
@@ -192,14 +204,27 @@ export function EntryFormModal({ isOpen, onClose, form, existingEntry = null, fi
                   </div>
                 `
                 case "photo":
-                  return `
-                  <div class="field">
-                    <div class="field-label">${component.label}</div>
-                    <div class="field-value">
-                      ${(value || []).map((photo) => `<img src="${photo}" alt="Uploaded photo" />`).join("")}
+                    return `
+                    <div class="field">
+                      <div class="field-label">${component.label}</div>
+                      <div class="field-value">
+                        ${
+                          Array.isArray(value)
+                            ? value
+                                .map((photo: any) => {
+                                  if (typeof photo === "string") {
+                                    return `<img src="${photo}" alt="Uploaded photo" />`
+                                  } else if (photo && photo.url) {
+                                    return `<img src="${photo.url}" alt="Uploaded photo (${photo.category})" />`
+                                  }
+                                  return ""
+                                })
+                                .join("")
+                            : ""
+                        }
+                      </div>
                     </div>
-                  </div>
-                `
+                  `
                 case "signature":
                   return `
                   <div class="field">
@@ -225,31 +250,24 @@ export function EntryFormModal({ isOpen, onClose, form, existingEntry = null, fi
         .join("")}
     </div>
     `
-  
-    document.body.appendChild(content)
-    const contentWidth = content.scrollWidth
-    const contentHeight = content.scrollHeight
-    document.body.removeChild(content)
-  
+
     const opt = {
-      margin: 0,
+      margin: 5,
       filename: `${form.name} - ${localFileName}.pdf`,
       image: { type: "jpeg", quality: 0.98 },
       html2canvas: {
         scale: 2,
         useCORS: true,
         logging: false,
-        scrollY: -window.scrollY,
       },
       jsPDF: {
-        unit: "px",
-        format: [contentWidth, contentHeight],
+        unit: "mm",
+        format: "a4",
         orientation: "portrait",
-        compress: true,
       },
-      pagebreak: { mode: ["avoid-all", "css", "legacy"] },
+      pagebreak: { avoid: ["div", "tr"] },
     }
-  
+
     html2pdf().from(content).set(opt).save()
   }
 
@@ -522,8 +540,8 @@ export function EntryFormModal({ isOpen, onClose, form, existingEntry = null, fi
             <Button type="button" variant="secondary" onClick={(e) => handleSubmit(e, true)}>
               Guardar como borrador
             </Button>
-            <Button type="submit" className=" text-white">
-            Guardar y exportar
+            <Button type="submit" className="text-white">
+              Guardar y exportar
             </Button>
             <Button
               type="button"
@@ -532,7 +550,7 @@ export function EntryFormModal({ isOpen, onClose, form, existingEntry = null, fi
               }}
               className="text-white w-full sm:w-auto"
             >
-               Export PDF
+              Export PDF
             </Button>
           </div>
         </form>
@@ -540,3 +558,4 @@ export function EntryFormModal({ isOpen, onClose, form, existingEntry = null, fi
     </Dialog>
   )
 }
+

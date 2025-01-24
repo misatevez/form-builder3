@@ -215,98 +215,109 @@ export function EditEntryModal({ isOpen, onClose, form, entry, fileName = "" }: 
     const content = document.createElement("div")
     content.innerHTML = `
       <style>
-        @page {
-          size: auto;
-          margin: 0;
-        }
         body {
-          margin: 0;
-          padding: 0;
-          font-family: Arial, sans-serif;
-          line-height: 1.6;
-          color: #333;
-        }
-        .container {
-          width: 100%;
-          padding: 20px;
-          box-sizing: border-box;
-        }
-        .header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 30px;
-          border-bottom: 2px solid #2F4858;
-          padding-bottom: 10px;
-        }
-        h1 {
-          color: #2F4858;
-          margin: 0;
-          font-size: 24px;
-        }
-        .file-name {
-          font-size: 1.2em;
-          color: #666;
-        }
-        h2 {
-          color: #2F4858;
-          margin-top: 30px;
-          margin-bottom: 20px;
-          font-size: 20px;
-          border-bottom: 1px solid #2F4858;
-          padding-bottom: 5px;
-        }
-        .section {
-          margin-bottom: 40px;
-        }
-        .field {
-          margin-bottom: 20px;
-        }
-        .field-label {
-          font-weight: bold;
-          margin-bottom: 5px;
-          color: #2F4858;
-        }
-        .field-value {
-          background-color: #f9f9f9;
-          padding: 10px;
-          border-radius: 4px;
-        }
-        table {
-          width: 100%;
-          border-collapse: collapse;
-          margin-top: 10px;
-          margin-bottom: 20px;
-        }
-        th, td {
-          border: 1px solid #ddd;
-          padding: 12px;
-          text-align: left;
-        }
-        th {
-          background-color: #f2f2f2;
-          font-weight: bold;
-          color: #2F4858;
-        }
-        .table-title {
-          font-weight: bold;
-          margin-bottom: 10px;
-          color: #2F4858;
-        }
-        img {
-          max-width: 100%;
-          height: auto;
-          margin-top: 10px;
-          border: 1px solid #ddd;
-          border-radius: 4px;
-          page-break-inside: avoid;
-        }
-      </style>
+        margin: 0;
+        padding: 0;
+        font-family: Arial, sans-serif;
+        line-height: 1.3;
+        color: #333;
+        font-size: 8px;
+      }
+      .container {
+        width: 100%;
+        padding: 10px;
+        box-sizing: border-box;
+      }
+      .header {
+        
+        color: black;
+        padding: 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .logo {
+        width: 180px;
+        height: auto;
+      }
+      .header-text {
+        text-align: right;
+      }
+      h1 {
+        color: black;
+        margin: 0;
+        font-size: 16px;
+      }
+      .file-name {
+        font-size: 12px;
+        color: black;
+        margin-top: 5px;
+      }
+      h2 {
+        color: #2F4858;
+        margin-top: 15px;
+        margin-bottom: 10px;
+        font-size: 12px;
+        border-bottom: 1px solid #2F4858;
+        padding-bottom: 5px;
+      }
+      .section {
+        margin-bottom: 15px;
+      }
+      .field {
+        margin-bottom: 10px;
+      }
+      .field-label {
+        font-weight: bold;
+        margin-bottom: 3px;
+        color: #2F4858;
+        font-size: 9px;
+      }
+      .field-value {
+        background-color: #f9f9f9;
+        padding: 4px;
+        border-radius: 3px;
+        font-size: 8px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+        margin-bottom: 10px;
+        font-size: 7px;
+      }
+      th, td {
+        border: 1px solid #ddd;
+        padding: 4px;
+        text-align: left;
+      }
+      th {
+        background-color: #f2f2f2;
+        font-weight: bold;
+        color: #2F4858;
+      }
+      .table-title {
+        font-weight: bold;
+        margin-bottom: 3px;
+        color: #2F4858;
+        font-size: 9px;
+      }
+      img {
+        max-width: 100%;
+        height: auto;
+        margin-top: 3px;
+        border: 1px solid #ddd;
+        border-radius: 2px;
+      }
+    </style>
       <div class="container">
-        <div class="header">
+      <div class="header">
+        <img src="/greenenergy-logo2.png" alt="GreenEnergy Logo" class="logo" />
+        <div class="header-text">
           <h1>${form.name}</h1>
           <div class="file-name">${localFileName}</div>
         </div>
+      </div>
         ${form.data.sections
           .map(
             (section: any) => `
@@ -415,15 +426,20 @@ export function EditEntryModal({ isOpen, onClose, form, entry, fileName = "" }: 
       await new Promise((resolve) => setTimeout(resolve, 1000))
 
       const opt = {
-        margin: 10,
+        margin: 5,
         filename: `${form.name} - ${localFileName}.pdf`,
         image: { type: "jpeg", quality: 0.98 },
         html2canvas: {
           scale: 2,
           useCORS: true,
-          logging: true,
+          logging: false,
         },
-        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+        jsPDF: {
+          unit: "mm",
+          format: "a4",
+          orientation: "portrait",
+        },
+        pagebreak: { avoid: ["div", "tr"] },
       }
 
       await html2pdf().from(content).set(opt).save()
