@@ -10,7 +10,7 @@ import { Trash2, Plus } from "lucide-react"
 interface Column {
   label: string
   key?: string
-  type?: 'text' | 'number'
+  type?: "text" | "number" | "textarea"
   validation?: { required?: boolean }
   placeholder?: string
 }
@@ -27,7 +27,15 @@ interface DynamicTableProps {
   isPreview?: boolean
 }
 
-export default function DynamicTable({ id, label, value = [], onChange, columns, validation, isPreview }: DynamicTableProps) {
+export default function DynamicTable({
+  id,
+  label,
+  value = [],
+  onChange,
+  columns,
+  validation,
+  isPreview,
+}: DynamicTableProps) {
   const [isMobile, setIsMobile] = useState(false)
 
   useEffect(() => {
@@ -58,6 +66,30 @@ export default function DynamicTable({ id, label, value = [], onChange, columns,
     onChange([...value, newRow])
   }
 
+  const renderCell = (column: Column, rowIndex: number, columnIndex: number, row: any[]) => {
+    if (column.type === "textarea") {
+      return (
+        <textarea
+          value={row[columnIndex] || ""}
+          onChange={(e) => handleCellChange(rowIndex, columnIndex, e.target.value)}
+          className="w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+          rows={3}
+          placeholder={column.placeholder}
+        />
+      )
+    } else {
+      return (
+        <input
+          type={column.type === "number" ? "number" : "text"}
+          value={row[columnIndex] || ""}
+          onChange={(e) => handleCellChange(rowIndex, columnIndex, e.target.value)}
+          className="w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+          placeholder={column.placeholder}
+        />
+      )
+    }
+  }
+
   if (isMobile) {
     return (
       <div className="w-full space-y-2">
@@ -77,14 +109,9 @@ export default function DynamicTable({ id, label, value = [], onChange, columns,
                   <div key={columnIndex} className="space-y-1.5">
                     <label className="text-xs font-medium text-muted-foreground">
                       {column.label}
-                      {validation?.required && <span className="text-destructive ml-1">*</span>}
+                      {column.validation?.required && <span className="text-destructive ml-1">*</span>}
                     </label>
-                    <input
-                      type={column.type === 'number' ? 'number' : 'text'}
-                      value={row[columnIndex] || ""}
-                      onChange={(e) => handleCellChange(rowIndex, columnIndex, e.target.value)}
-                      className="w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                    />
+                    {renderCell(column, rowIndex, columnIndex, row)}
                   </div>
                 ))}
                 <div className="pt-2">
@@ -102,14 +129,9 @@ export default function DynamicTable({ id, label, value = [], onChange, columns,
               </div>
             </div>
           ))}
-          { !isPreview && (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="w-full"
-              onClick={addRow}
-            >
+          {!isPreview && (
+            <Button type="button" variant="outline" size="sm" className="w-full" onClick={addRow}>
+              <Plus size={16} className="inline-block mr-2" />
               Añadir fila
             </Button>
           )}
@@ -138,10 +160,13 @@ export default function DynamicTable({ id, label, value = [], onChange, columns,
                     <TableHead
                       key={index}
                       className="p-2 text-xs font-medium text-left whitespace-normal"
-                      style={{ width: `${100 / columns.length}%` }}
+                      style={{
+                        width: column.type === "textarea" ? "30%" : `${100 / columns.length}%`,
+                        maxWidth: column.type === "textarea" ? "300px" : "none",
+                      }}
                     >
                       {column.label}
-                      {validation?.required && <span className="text-destructive ml-1">*</span>}
+                      {column.validation?.required && <span className="text-destructive ml-1">*</span>}
                     </TableHead>
                   ))}
                   <TableHead className="w-[50px]"></TableHead>
@@ -151,14 +176,15 @@ export default function DynamicTable({ id, label, value = [], onChange, columns,
                 {value.map((row, rowIndex) => (
                   <TableRow key={rowIndex}>
                     {columns.map((column, columnIndex) => (
-                      <TableCell key={columnIndex} className="p-2">
-                        <input
-                          type={column.type === 'number' ? 'number' : 'text'}
-                          value={row[columnIndex] || ""}
-                          onChange={(e) => handleCellChange(rowIndex, columnIndex, e.target.value)}
-                          className="w-full min-w-0 flex-1 bg-transparent p-0 text-sm placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                          placeholder={column.placeholder}
-                        />
+                      <TableCell
+                        key={columnIndex}
+                        className={`p-2 ${column.type === "textarea" ? "h-auto" : ""}`}
+                        style={{
+                          width: column.type === "textarea" ? "30%" : `${100 / columns.length}%`,
+                          maxWidth: column.type === "textarea" ? "300px" : "none",
+                        }}
+                      >
+                        {renderCell(column, rowIndex, columnIndex, row)}
                       </TableCell>
                     ))}
                     <TableCell className="w-[50px] p-2">
@@ -180,16 +206,13 @@ export default function DynamicTable({ id, label, value = [], onChange, columns,
           <ScrollBar orientation="horizontal" />
         </ScrollArea>
       </div>
-      { !isPreview && (
-        <Button
-          onClick={addRow}
-          type="button"
-          className="mt-2"
-        >
+      {!isPreview && (
+        <Button onClick={addRow} type="button" className="mt-2">
           <Plus size={16} className="inline-block mr-2" />
           Añadir fila
         </Button>
       )}
     </div>
-  );
+  )
 }
+
