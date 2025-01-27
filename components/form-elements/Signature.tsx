@@ -31,18 +31,19 @@ const Signature: React.FC<SignatureProps> = ({ id, label, value, onChange, valid
   const handleDrawEnd = useCallback(() => {
     if (signatureRef.current) {
       setIsEmpty(signatureRef.current.isEmpty())
-      if (!signatureRef.current.isEmpty()) {
-        const signatureData = signatureRef.current.toDataURL()
-        console.log("Signature data captured:", signatureData.substring(0, 50) + "...")
-        onChange(signatureData)
-      }
     }
-  }, [onChange])
+  }, [])
+
+  const handleDrawStart = useCallback(() => {
+    if (signatureRef.current && !signatureRef.current.isEmpty()) {
+      signatureRef.current.clear()
+    }
+  }, [])
 
   const saveSignature = useCallback(() => {
-    if (signatureRef.current && !signatureRef.current.isEmpty()) {
-      const signatureData = signatureRef.current.toDataURL()
-      console.log("Saving signature data:", signatureData.substring(0, 50) + "...")
+    if (signatureRef.current) {
+      const signatureData = signatureRef.current.isEmpty() ? "" : signatureRef.current.toDataURL()
+      console.log("Saving signature data:", signatureData ? signatureData.substring(0, 50) + "..." : "empty")
       onChange(signatureData)
     }
   }, [onChange])
@@ -61,6 +62,7 @@ const Signature: React.FC<SignatureProps> = ({ id, label, value, onChange, valid
             height: 150,
             className: "w-full h-full cursor-crosshair",
           }}
+          onBegin={handleDrawStart}
           onEnd={handleDrawEnd}
           dotSize={1}
           throttle={16}
@@ -74,7 +76,7 @@ const Signature: React.FC<SignatureProps> = ({ id, label, value, onChange, valid
         <Button onClick={clearSignature} variant="outline" type="button">
           Limpiar firma
         </Button>
-        <Button onClick={saveSignature} variant="primary" type="button" disabled={isEmpty}>
+        <Button onClick={saveSignature} variant="primary" type="button">
           Guardar firma
         </Button>
       </div>
