@@ -1,10 +1,11 @@
+[V0_FILE]typescriptreact:file="signature-a8IrZ39mBGSF06d6vsEC0O4aHmhcJL.tsx" isMerged="true"
 import type React from "react"
 import { useRef, useState, useEffect, useCallback } from "react"
 import type { FormComponent } from "../../types/form"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch"
-import SignatureCanvas from "react-signature-canvas"
+import SignatureCanvas from 'react-signature-canvas'
 
 interface SignatureProps extends FormComponent {
   value: string
@@ -23,6 +24,7 @@ const Signature: React.FC<SignatureProps> = ({ id, label, value, onChange, valid
         if (typeof parsedValue === "object" && parsedValue.text) {
           setTextSignature(parsedValue.text)
           setIsTextMode(true)
+          renderTextSignature(parsedValue.text)
         } else if (signatureRef.current) {
           signatureRef.current.fromDataURL(value)
         }
@@ -44,24 +46,28 @@ const Signature: React.FC<SignatureProps> = ({ id, label, value, onChange, valid
 
   const handleDrawEnd = useCallback(() => {
     if (signatureRef.current && !signatureRef.current.isEmpty()) {
-      onChange(signatureRef.current.toDataURL())
+      const signatureData = signatureRef.current.toDataURL()
+      onChange(signatureData)
     }
   }, [onChange])
 
-  const renderTextSignature = useCallback((text: string) => {
-    if (signatureRef.current) {
-      const canvas = signatureRef.current.getCanvas()
-      const ctx = canvas.getContext("2d")
-      if (ctx) {
-        ctx.clearRect(0, 0, canvas.width, canvas.height)
-        ctx.font = "italic 48px 'Brush Script MT', cursive"
-        ctx.fillStyle = "#000"
-        ctx.textAlign = "center"
-        ctx.textBaseline = "middle"
-        ctx.fillText(text, canvas.width / 2, canvas.height / 2)
+  const renderTextSignature = useCallback(
+    (text: string) => {
+      if (signatureRef.current) {
+        const canvas = signatureRef.current.getCanvas()
+        const ctx = canvas.getContext("2d")
+        if (ctx) {
+          ctx.clearRect(0, 0, canvas.width, canvas.height)
+          ctx.font = "italic 48px 'Brush Script MT', cursive"
+          ctx.fillStyle = "#000"
+          ctx.textAlign = "center"
+          ctx.textBaseline = "middle"
+          ctx.fillText(text, canvas.width / 2, canvas.height / 2)
+        }
       }
-    }
-  }, [])
+    },
+    [],
+  )
 
   const handleTextSignatureChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -79,6 +85,7 @@ const Signature: React.FC<SignatureProps> = ({ id, label, value, onChange, valid
       if (checked) {
         if (textSignature) {
           renderTextSignature(textSignature)
+          onChange(JSON.stringify({ text: textSignature }))
         } else {
           clearSignature()
         }
@@ -86,7 +93,7 @@ const Signature: React.FC<SignatureProps> = ({ id, label, value, onChange, valid
         clearSignature()
       }
     },
-    [clearSignature, renderTextSignature, textSignature],
+    [clearSignature, renderTextSignature, textSignature, onChange],
   )
 
   return (
@@ -115,7 +122,7 @@ const Signature: React.FC<SignatureProps> = ({ id, label, value, onChange, valid
         canvasProps={{
           width: 300,
           height: 150,
-          className: "border rounded cursor-crosshair",
+          className: "border rounded cursor-crosshair"
         }}
         onEnd={handleDrawEnd}
       />
@@ -129,4 +136,3 @@ const Signature: React.FC<SignatureProps> = ({ id, label, value, onChange, valid
 }
 
 export default Signature
-
