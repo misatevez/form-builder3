@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { FormComponent } from '../../types/form';
 import { Upload, X, ArrowUp, ArrowDown, CheckCircle, Trash2 } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { supabase } from "@/lib/supabase";
 import { v4 as uuidv4 } from 'uuid';
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
 
 interface PhotoUploadProps extends FormComponent {
   value: Array<{ url: string; category: string }>;
@@ -19,6 +20,7 @@ export function PhotoUpload({ label, value, onChange, validation, uploading }: P
   const [dragOver, setDragOver] = useState(false);
   const [categories, setCategories] = useState<string[]>(['General']);
   const [loadingUrls, setLoadingUrls] = useState<Record<string, boolean>>({});
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -100,6 +102,14 @@ export function PhotoUpload({ label, value, onChange, validation, uploading }: P
     onChange(newPhotos);
   };
 
+  const handleImageClick = (url: string) => {
+    setPreviewUrl(url);
+  };
+
+  const handleClosePreview = () => {
+    setPreviewUrl(null);
+  };
+
   return (
     <div className="mb-4">
       <label className="block mb-2 font-bold">
@@ -149,7 +159,12 @@ export function PhotoUpload({ label, value, onChange, validation, uploading }: P
                         className="flex items-center mb-2 p-2 bg-gray-100 rounded"
                       >
                         <div className="relative">
-                          <img src={photo.url || "/placeholder.svg"} alt={`Uploaded photo ${index + 1}`} className="w-16 h-16 object-cover rounded mr-4" />
+                          <img
+                            src={photo.url || "/placeholder.svg"}
+                            alt={`Uploaded photo ${index + 1}`}
+                            className="w-16 h-16 object-cover rounded mr-4 cursor-pointer"
+                            onClick={() => handleImageClick(photo.url)}
+                          />
                           {loadingUrls[index] && (
                             <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded">
                               <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-white"></div>
@@ -202,6 +217,15 @@ export function PhotoUpload({ label, value, onChange, validation, uploading }: P
                           >
                             <ArrowDown className="h-4 w-4" />
                           </Button>
+													   <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                           onClick={() => handleImageClick(photo.url)}
+                            
+                          >
+                           Ver
+                          </Button>
                         </div>
                       </div>
                     )}
@@ -222,7 +246,15 @@ export function PhotoUpload({ label, value, onChange, validation, uploading }: P
       >
         Add Category
       </Button>
+      {previewUrl && (
+        <Dialog open={!!previewUrl} onOpenChange={handleClosePreview}>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-auto">
+            <img src={previewUrl} alt="Preview" className="w-full" />
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }
+
 export default PhotoUpload;

@@ -225,4 +225,3 @@ const Signature: React.FC<SignatureProps> = ({ id, label, value, onChange, valid
 }
 
 export default Signature
-
