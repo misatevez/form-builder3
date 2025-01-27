@@ -12,6 +12,7 @@ interface SignatureProps extends FormComponent {
 const Signature: React.FC<SignatureProps> = ({ id, label, value, onChange, validation }) => {
   const signatureRef = useRef<SignatureCanvas>(null)
   const [isEmpty, setIsEmpty] = useState(true)
+  const [isSaving, setIsSaving] = useState(false)
 
   useEffect(() => {
     if (value && signatureRef.current) {
@@ -36,15 +37,23 @@ const Signature: React.FC<SignatureProps> = ({ id, label, value, onChange, valid
 
   const handleDrawStart = useCallback(() => {
     if (signatureRef.current && !signatureRef.current.isEmpty()) {
+      const currentData = signatureRef.current.toData()
       signatureRef.current.clear()
+      signatureRef.current.fromData(currentData)
     }
   }, [])
 
   const saveSignature = useCallback(() => {
     if (signatureRef.current) {
+      setIsSaving(true)
       const signatureData = signatureRef.current.isEmpty() ? "" : signatureRef.current.toDataURL()
       console.log("Saving signature data:", signatureData ? signatureData.substring(0, 50) + "..." : "empty")
-      onChange(signatureData)
+
+      // Simular un pequeño retraso para evitar el efecto visual no deseado
+      setTimeout(() => {
+        onChange(signatureData)
+        setIsSaving(false)
+      }, 50)
     }
   }, [onChange])
 
@@ -73,11 +82,11 @@ const Signature: React.FC<SignatureProps> = ({ id, label, value, onChange, valid
         />
       </div>
       <div className="mt-2 flex space-x-2">
-        <Button onClick={clearSignature} variant="outline" type="button">
+        <Button onClick={clearSignature} variant="outline" type="button" disabled={isSaving}>
           Limpiar firma
         </Button>
-        <Button onClick={saveSignature} variant="primary" type="button">
-          Guardar firma
+        <Button onClick={saveSignature} variant="primary" type="button" disabled={isSaving}>
+          {isSaving ? "Guardando..." : "Guardar firma"}
         </Button>
       </div>
     </div>
