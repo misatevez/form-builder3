@@ -124,85 +124,8 @@ export function EditEntryModal({ isOpen, onClose, form, entry, fileName = "" }: 
     }
   }
 
-  const handleInputChange = async (id: string, value: any) => {
+  const handleInputChange = (id, value) => {
     setFormData((prevData) => ({ ...prevData, [id]: value }))
-
-    if (typeof value === "object" && value !== null && Array.isArray(value) && value.length > 0) {
-      const component = form.data.sections
-        .flatMap((section: any) => section.components)
-        .find((comp: any) => comp.id === id)
-
-      if (component?.type === "photo") {
-        setUploading(true)
-        try {
-          const uploadPromises = value.map(async (file: any) => {
-            if (typeof file === "string") {
-              return file // If it's already a URL, don't upload
-            }
-            const fileName = `${uuidv4()}-${file.name}`
-
-            // Convert File to Blob
-            const blob = new Blob([file], { type: file.type })
-
-            const { data, error } = await supabase.storage.from("fsp-files").upload(fileName, blob)
-
-            if (error) {
-              console.error("Error uploading file:", error)
-              throw error
-            }
-
-            const {
-              data: { publicUrl },
-            } = supabase.storage.from("fsp-files").getPublicUrl(fileName)
-
-            return { publicUrl }
-          })
-
-          const uploadedUrls = await Promise.all(uploadPromises)
-          setFormData((prevData) => ({ ...prevData, [id]: uploadedUrls }))
-        } catch (error) {
-          console.error("Error during file upload:", error)
-          // Handle errors (e.g., show a toast)
-        } finally {
-          setUploading(false)
-        }
-      }
-    } else if (typeof value === "string" && value.startsWith("data:image")) {
-      const component = form.data.sections
-        .flatMap((section: any) => section.components)
-        .find((comp: any) => comp.id === id)
-
-      if (component?.type === "signature") {
-        setUploading(true)
-        try {
-          const fileName = `${uuidv4()}-signature.png`
-          const byteString = atob(value.split(",")[1])
-          const mimeString = value.split(",")[0].split(":")[1].split(";")[0]
-          const ab = new ArrayBuffer(byteString.length)
-          const ia = new Uint8Array(ab)
-          for (let i = 0; i < byteString.length; i++) {
-            ia[i] = byteString.charCodeAt(i)
-          }
-          const blob = new Blob([ab], { type: mimeString })
-
-          const { data, error } = await supabase.storage.from("fsp-files").upload(fileName, blob)
-
-          if (error) {
-            console.error("Error uploading signature:", error)
-          }
-
-          const publicUrl = supabase.storage.from("fsp-files").getPublicUrl(fileName).data.publicUrl
-
-          setFormData((prevData) => ({ ...prevData, [id]: publicUrl }))
-        } catch (error) {
-          console.error("Error during signature upload:", error)
-        } finally {
-          setUploading(false)
-        }
-      }
-    } else {
-      setFormData((prevData) => ({ ...prevData, [id]: value }))
-    }
   }
 
   const exportToPDF = async () => {
