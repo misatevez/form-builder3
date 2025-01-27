@@ -63,9 +63,36 @@ export function FormEntriesModal({ isOpen, onClose, form, currentUser }) {
     if (error) {
       console.error("Error fetching entries:", error)
     } else {
-      setEntries(data)
+      console.log("Raw data from Supabase:", data)
+      // Procesar los datos para extraer el nombre del proyecto
+      const processedEntries = data.map((entry) => {
+        console.log("Processing entry:", entry)
+        console.log("Entry data:", entry.data)
+        let projectName = "Sin nombre"
+        try {
+          if (typeof entry.data === "string") {
+            const parsedData = JSON.parse(entry.data)
+            console.log("Parsed data:", parsedData)
+            projectName = parsedData["project-name"] || "Sin nombre"
+          } else if (typeof entry.data === "object" && entry.data !== null) {
+            console.log("Data is already an object")
+            projectName = entry.data["project-name"] || "Sin nombre"
+          } else {
+            console.log("Unexpected data type:", typeof entry.data)
+          }
+        } catch (e) {
+          console.error("Error parsing entry data:", e)
+          console.log("Problematic entry data:", entry.data)
+        }
+        return {
+          ...entry,
+          projectName,
+        }
+      })
+      console.log("Processed entries:", processedEntries)
+      setEntries(processedEntries)
       if (isAuthorized) {
-        fetchUserEmails(data.map((entry) => entry.user_id))
+        fetchUserEmails(processedEntries.map((entry) => entry.user_id))
       }
     }
   }
@@ -85,10 +112,16 @@ export function FormEntriesModal({ isOpen, onClose, form, currentUser }) {
   }
 
   const handleEditEntry = (entry) => {
-    setEntryModalState({ isOpen: true, entry, fileName: entry.file_name })
+    setEntryModalState({
+      isOpen: true,
+      entry,
+      fileName: entry.file_name || "",
+      projectName: entry.projectName || "",
+    })
   }
 
   const handleCreateEntry = () => {
+    setNewFileName(form.data.projectName || "")
     setIsCreateAlertOpen(true)
   }
 
@@ -188,6 +221,7 @@ export function FormEntriesModal({ isOpen, onClose, form, currentUser }) {
     return entries.filter(
       (entry) =>
         entry.file_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        entry.projectName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (isAuthorized && userEmails[entry.user_id]?.toLowerCase().includes(searchTerm.toLowerCase())),
     )
   }, [entries, searchTerm, isAuthorized, userEmails])
@@ -225,7 +259,7 @@ export function FormEntriesModal({ isOpen, onClose, form, currentUser }) {
             <div className="mb-4">
               <Input
                 type="text"
-                placeholder="Buscar por nombre de archivo o email"
+                placeholder="Buscar por nombre de archivo, proyecto o email"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -251,6 +285,9 @@ export function FormEntriesModal({ isOpen, onClose, form, currentUser }) {
                           Nombre de archivo {sortColumn === "file_name" && <ArrowUpDown className="inline ml-2" />}
                         </TableHead>
                         <TableHead className="w-1/6 cursor-pointer" onClick={() => handleSort("is_draft")}>
+                          Nombre del proyecto {sortColumn === "is_draft" && <ArrowUpDown className="inline ml-2" />}
+                        </TableHead>
+                        <TableHead className="w-1/6 cursor-pointer" onClick={() => handleSort("is_draft")}>
                           Estado {sortColumn === "is_draft" && <ArrowUpDown className="inline ml-2" />}
                         </TableHead>
                         <TableHead
@@ -274,6 +311,7 @@ export function FormEntriesModal({ isOpen, onClose, form, currentUser }) {
                       {sortedEntries.map((entry) => (
                         <TableRow key={entry.id}>
                           <TableCell className="font-medium">{entry.file_name}</TableCell>
+                          <TableCell>{entry.projectName}</TableCell>
                           <TableCell>{entry.is_draft ? "Borrador" : "Publicado"}</TableCell>
                           <TableCell className="hidden sm:table-cell">
                             {new Date(entry.created_at).toLocaleString()}
@@ -347,6 +385,7 @@ export function FormEntriesModal({ isOpen, onClose, form, currentUser }) {
           form={form}
           entry={entryModalState.entry}
           fileName={entryModalState.fileName}
+          projectName={entryModalState.projectName}
           currentUser={currentUser}
         />
       )}
@@ -389,3 +428,4 @@ export function FormEntriesModal({ isOpen, onClose, form, currentUser }) {
     </>
   )
 }
+
