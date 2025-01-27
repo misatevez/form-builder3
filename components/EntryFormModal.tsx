@@ -17,6 +17,7 @@ import Autocomplete from "./form-elements/Autocomplete"
 import Signature from "./form-elements/Signature"
 import PhotoUpload from "./form-elements/PhotoUpload"
 import DynamicTable from "./form-elements/DynamicTable"
+import TextArea from "./form-elements/TextArea"
 import { useToast } from "@/components/ui/use-toast"
 import { useTheme } from "@/utils/theme"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
@@ -204,7 +205,7 @@ export function EntryFormModal({ isOpen, onClose, form, existingEntry = null, fi
                   </div>
                 `
                 case "photo":
-                    return `
+                  return `
                     <div class="field">
                       <div class="field-label">${component.label}</div>
                       <div class="field-value">
@@ -487,6 +488,17 @@ export function EntryFormModal({ isOpen, onClose, form, existingEntry = null, fi
             />
           </div>
         )
+      case "textarea":
+        return (
+          <TextArea
+            id={component.id}
+            label={component.label}
+            value={formData[component.id] || ""}
+            onChange={(value) => handleInputChange(component.id, value)}
+            placeholder={component.placeholder}
+            validation={component.validation}
+          />
+        )
       default:
         return (
           <TextInput
@@ -558,3 +570,4 @@ export function EntryFormModal({ isOpen, onClose, form, existingEntry = null, fi
     </Dialog>
   )
 }
+
