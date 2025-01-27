@@ -11,34 +11,39 @@ interface SignatureProps extends FormComponent {
 
 const Signature: React.FC<SignatureProps> = ({ id, label, value, onChange, validation }) => {
   const signatureRef = useRef<SignatureCanvas>(null)
+  const [isEmpty, setIsEmpty] = useState(true)
 
   useEffect(() => {
     if (value && signatureRef.current) {
       signatureRef.current.fromDataURL(value)
+      setIsEmpty(false)
     }
   }, [value])
 
   const clearSignature = useCallback(() => {
     if (signatureRef.current) {
       signatureRef.current.clear()
+      setIsEmpty(true)
       onChange("")
     }
   }, [onChange])
 
-  const handleDrawBegin = useCallback(() => {
-    if (signatureRef.current) {
-      signatureRef.current.clear()
-    }
-  }, [])
-
   const handleDrawEnd = useCallback(() => {
+    if (signatureRef.current) {
+      setIsEmpty(signatureRef.current.isEmpty())
+      if (!signatureRef.current.isEmpty()) {
+        const signatureData = signatureRef.current.toDataURL()
+        console.log("Signature data captured:", signatureData.substring(0, 50) + "...")
+        onChange(signatureData)
+      }
+    }
+  }, [onChange])
+
+  const saveSignature = useCallback(() => {
     if (signatureRef.current && !signatureRef.current.isEmpty()) {
-      setTimeout(() => {
-        const signatureData = signatureRef.current?.toDataURL()
-        if (signatureData) {
-          onChange(signatureData)
-        }
-      }, 100)
+      const signatureData = signatureRef.current.toDataURL()
+      console.log("Saving signature data:", signatureData.substring(0, 50) + "...")
+      onChange(signatureData)
     }
   }, [onChange])
 
@@ -56,7 +61,6 @@ const Signature: React.FC<SignatureProps> = ({ id, label, value, onChange, valid
             height: 150,
             className: "w-full h-full cursor-crosshair",
           }}
-          onBegin={handleDrawBegin}
           onEnd={handleDrawEnd}
           dotSize={1}
           throttle={16}
@@ -66,9 +70,12 @@ const Signature: React.FC<SignatureProps> = ({ id, label, value, onChange, valid
           backgroundColor="rgba(255,255,255,0)"
         />
       </div>
-      <div className="mt-2">
+      <div className="mt-2 flex space-x-2">
         <Button onClick={clearSignature} variant="outline" type="button">
           Limpiar firma
+        </Button>
+        <Button onClick={saveSignature} variant="primary" type="button" disabled={isEmpty}>
+          Guardar firma
         </Button>
       </div>
     </div>
