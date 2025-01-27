@@ -1,5 +1,6 @@
 import type React from "react"
-import { useCallback, useRef, useState, useEffect } from "react"
+import { useRef, useEffect, useCallback } from "react"
+import SignaturePad from "signature_pad"
 
 interface SignatureProps {
   value: string
@@ -8,118 +9,65 @@ interface SignatureProps {
 
 const Signature: React.FC<SignatureProps> = ({ value, onChange }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const [isDrawing, setIsDrawing] = useState(false)
-  const [strokes, setStrokes] = useState<Array<{ x: number; y: number }[]>>([[]])
-  const currentStrokeRef = useRef<Array<{ x: number; y: number }>>([])
+  const signaturePadRef = useRef<SignaturePad | null>(null)
 
-  const startDrawing = useCallback((e: React.TouchEvent<HTMLCanvasElement>) => {
-    e.preventDefault()
-    setIsDrawing(true)
-    const canvas = canvasRef.current
-    if (canvas) {
-      const rect = canvas.getBoundingClientRect()
-      const x = e.touches[0].clientX - rect.left
-      const y = e.touches[0].clientY - rect.top
-      currentStrokeRef.current = [{ x, y }]
-    }
-  }, [])
-
-  const draw = useCallback(
-    (e: React.TouchEvent<HTMLCanvasElement>) => {
-      e.preventDefault()
-      if (!isDrawing) return
-      const canvas = canvasRef.current
-      const ctx = canvas?.getContext("2d")
-      if (ctx && canvas) {
-        const rect = canvas.getBoundingClientRect()
-        const x = e.touches[0].clientX - rect.left
-        const y = e.touches[0].clientY - rect.top
-
-        currentStrokeRef.current.push({ x, y })
-
-        ctx.lineWidth = 2
-        ctx.lineCap = "round"
-        ctx.strokeStyle = "#000"
-        ctx.lineTo(x, y)
-        ctx.stroke()
-        ctx.beginPath()
-        ctx.moveTo(x, y)
-      }
-    },
-    [isDrawing],
-  )
-
-  const stopDrawing = useCallback(() => {
-    setIsDrawing(false)
-    setStrokes([...strokes, currentStrokeRef.current])
-    currentStrokeRef.current = []
-    onChange(JSON.stringify([...strokes, currentStrokeRef.current]))
-  }, [strokes, onChange])
-
-  const clearCanvas = useCallback(() => {
-    const canvas = canvasRef.current
-    const ctx = canvas?.getContext("2d")
-    if (ctx) {
-      ctx.clearRect(0, 0, canvas.width, canvas.height)
-    }
-  }, [])
-
-  const drawStrokes = useCallback((strokesToDraw: Array<{ x: number; y: number }[]>) => {
-    const canvas = canvasRef.current
-    const ctx = canvas?.getContext("2d")
-    if (ctx && canvas) {
-      strokesToDraw.forEach((stroke) => {
-        ctx.beginPath()
-        ctx.lineWidth = 2
-        ctx.lineCap = "round"
-        ctx.strokeStyle = "#000"
-        ctx.moveTo(stroke[0].x, stroke[0].y)
-        stroke.forEach((point, index) => {
-          if (index > 0) {
-            ctx.lineTo(point.x, point.y)
-            ctx.stroke()
-          }
-        })
+  useEffect(() => {
+    if (canvasRef.current) {
+      signaturePadRef.current = new SignaturePad(canvasRef.current, {
+        backgroundColor: "rgb(255, 255, 255)",
+        penColor: "rgb(0, 0, 0)",
       })
+
+      const resizeCanvas = () => {
+        const ratio = Math.max(window.devicePixelRatio || 1, 1)
+        canvasRef.current.width = canvasRef.current.offsetWidth * ratio
+        canvasRef.current.height = canvasRef.current.offsetHeight * ratio
+        canvasRef.current.getContext("2d").scale(ratio, ratio)
+        signaturePadRef.current.clear() // Otherwise isEmpty() might return incorrect value
+      }
+
+      window.addEventListener("resize", resizeCanvas)
+      resizeCanvas()
+
+      return () => {
+        window.removeEventListener("resize", resizeCanvas)
+      }
     }
   }, [])
 
   useEffect(() => {
-    if (value) {
-      try {
-        const parsedValue = JSON.parse(value)
-        if (Array.isArray(parsedValue)) {
-          setStrokes(parsedValue)
-          clearCanvas()
-          drawStrokes(parsedValue)
-        }
-      } catch (error) {
-        console.error("Error parsing signature value:", error)
-      }
-    } else {
-      clearCanvas()
-      setStrokes([])
+    if (signaturePadRef.current && value) {
+      signaturePadRef.current.fromDataURL(value)
     }
-  }, [value, clearCanvas, drawStrokes])
+  }, [value])
+
+  const handleEnd = useCallback(() => {
+    if (signaturePadRef.current && !signaturePadRef.current.isEmpty()) {
+      onChange(signaturePadRef.current.toDataURL())
+    }
+  }, [onChange])
 
   const clearSignature = useCallback(() => {
-    clearCanvas()
-    setStrokes([])
-    onChange("")
-  }, [onChange, clearCanvas])
+    if (signaturePadRef.current) {
+      signaturePadRef.current.clear()
+      onChange("")
+    }
+  }, [onChange])
 
   return (
-    <div className="relative">
+    <div className="relative w-full h-48">
       <canvas
         ref={canvasRef}
-        width={300}
-        height={150}
-        className="border rounded touch-none w-full"
-        onTouchStart={startDrawing}
-        onTouchEnd={stopDrawing}
-        onTouchMove={draw}
+        className="border rounded touch-action-none w-full h-full"
+        onTouchEnd={handleEnd}
+        onMouseUp={handleEnd}
       />
-      <div className="absolute top-0 left-0 w-full h-full bg-transparent" />
+      <button
+        onClick={clearSignature}
+        className="absolute bottom-2 right-2 bg-white border border-gray-300 rounded px-2 py-1 text-sm"
+      >
+        Limpiar
+      </button>
     </div>
   )
 }
