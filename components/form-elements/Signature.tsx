@@ -25,10 +25,20 @@ const Signature: React.FC<SignatureProps> = ({ id, label, value, onChange, valid
     }
   }, [onChange])
 
+  const handleDrawBegin = useCallback(() => {
+    if (signatureRef.current) {
+      signatureRef.current.clear()
+    }
+  }, [])
+
   const handleDrawEnd = useCallback(() => {
     if (signatureRef.current && !signatureRef.current.isEmpty()) {
-      const signatureData = signatureRef.current.toDataURL()
-      onChange(signatureData)
+      setTimeout(() => {
+        const signatureData = signatureRef.current?.toDataURL()
+        if (signatureData) {
+          onChange(signatureData)
+        }
+      }, 100)
     }
   }, [onChange])
 
@@ -46,7 +56,14 @@ const Signature: React.FC<SignatureProps> = ({ id, label, value, onChange, valid
             height: 150,
             className: "w-full h-full cursor-crosshair",
           }}
+          onBegin={handleDrawBegin}
           onEnd={handleDrawEnd}
+          dotSize={1}
+          throttle={16}
+          minWidth={1}
+          maxWidth={2}
+          penColor="black"
+          backgroundColor="rgba(255,255,255,0)"
         />
       </div>
       <div className="mt-2">
