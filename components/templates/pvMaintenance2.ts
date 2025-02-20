@@ -25,14 +25,14 @@ export const pvMaintenance2: FormTemplate = {
         { id: 'safety-equipment', type: 'checkbox', label: '¿Posee el equipo de seguridad para realizar la inspección?' },
         { id: 'system-generating', type: 'checkbox', label: '¿El sistema está generando?' },
         { id: 'inverter-error', type: 'checkbox', label: '¿El inversor está indicando algún mensaje de error?' },
-        { id: 'error-message', type: 'text', label: 'En caso de presentar error, indicar el número de estado' },
+        { id: 'error-message', type: 'text', label: 'En caso de presentar error, indicar el número de estado e inversor' },
       ],
     },
     {
       id: 'building-info',
       title: '1. Información del edificio',
       components: [
-        { id: 'system-type', type: 'select', label: 'Tipo de sistema', options: ['Conectado a la red', 'Netzero', 'Aislado'], validation: { required: true } },
+        { id: 'system-type', type: 'select', label: 'Tipo de sistema', options: ['Conectado a la red', 'Netzero', 'Aislado','Hibrido','Microred'], validation: { required: true } },
         { id: 'surface-state', type: 'text', label: 'Estado/material de la superficie', validation: { required: true } },
         { id: 'surface-photos', type: 'photo', label: 'Fotos material de la superficie', validation: { required: true, min: 2 } },
         { id: 'interconnection-point', type: 'text', label: 'Ubicación del punto de interconexión', validation: { required: true } },

@@ -23,9 +23,8 @@ export const pvCommissioningForm: FormTemplate = {
         { id: 'panelPower', type: 'number', label: 'Potencia individual de paneles solares (W)' },
         { 
           id: 'inverterBrand', 
-          type: 'select', 
+          type: 'text', 
           label: 'Marca de inversores', 
-          options: ['Fronius', 'SMA', 'Huawei', 'SolarEdge'],
           validation: { required: true } 
         },
         { id: 'inverterDetails', type: 'text', label: 'Cantidad de inversores y modelo de cada inversor', validation: { required: true } },
@@ -186,10 +185,10 @@ export const pvCommissioningForm: FormTemplate = {
     },
     {
       id: 'monitoring-system-photos',
-      title: 'Fotos de monitores',
+      title: 'Fotos de monitoreo',
       description: 'Adjunte fotos de la instalación del sistema de monitoreo. Smartmeter, protecciones, canalización y donas.',
       components: [
-        { id: 'monitoringSystemPhotos', type: 'photo', label: 'Fotos de monitores' },
+        { id: 'monitoringSystemPhotos', type: 'photo', label: 'Fotos de monitoreo' },
       ],
     },
     {
