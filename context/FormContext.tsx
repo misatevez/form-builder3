@@ -1,13 +1,12 @@
-import type React from "react"
-import { createContext, useContext, useState, useEffect } from "react"
+import React, { createContext, useContext } from "react"
 import { useFormLogic } from "../hooks/useFormLogic"
-import { type FormTemplate, type FormData, type FormComponent, type FormSection, INITIAL_TEMPLATE } from "../types/form"
+import type { FormTemplate, FormData, FormComponent, FormSection } from "../types/form"
 
 interface FormContextType {
   template: FormTemplate
   data: FormData
   selectedElementId: string | null
-  activeTab: "constructor" | "vista_previa" | "plantillas"
+  activePropertiesTab: "form" | "element"
   updateTemplate: (updates: Partial<FormTemplate>) => void
   updateData: (updates: Partial<FormData>) => void
   addComponent: (component: FormComponent, sectionId: string) => void
@@ -16,69 +15,29 @@ interface FormContextType {
   addSection: (section: FormSection) => void
   removeSection: (sectionId: string) => void
   updateSection: (sectionId: string, updates: Partial<FormSection>) => void
-  setSelectedElementId: (id: string | null) => void
-  updateFormProperties: (updates: Partial<FormTemplate>) => void
   moveComponentBetweenSections: (
     sourceSectionId: string,
     destinationSectionId: string,
     sourceIndex: number,
-    destinationIndex: number,
+    destinationIndex: number
   ) => void
-  setActiveTab: (tab: "constructor" | "vista_previa" | "plantillas") => void
-  isLoading: boolean
-  activePropertiesTab: "element" | "form"
-  setActivePropertiesTab: (tab: "element" | "form") => void
+  setSelectedElementId: (id: string | null) => void
+  setActivePropertiesTab: (tab: "form" | "element") => void
+  setActiveTab?: (tab: string) => void
 }
 
 const FormContext = createContext<FormContextType | undefined>(undefined)
 
-interface FormProviderProps {
+export function FormProvider({
+  children,
+  initialTemplate,
+}: {
   children: React.ReactNode
-  initialTemplate?: FormTemplate
-}
-
-export function FormProvider({ children, initialTemplate = INITIAL_TEMPLATE }: FormProviderProps) {
-  const [isLoading, setIsLoading] = useState(true)
+  initialTemplate: FormTemplate
+}) {
   const formLogic = useFormLogic(initialTemplate)
-  const [selectedElementId, setSelectedElementId] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState<"constructor" | "vista_previa" | "plantillas">("constructor")
-  const [activePropertiesTab, setActivePropertiesTab] = useState<"element" | "form">("element")
 
-  useEffect(() => {
-    console.log("FormContext - Initial template:", initialTemplate)
-    if (!initialTemplate || !initialTemplate.sections) {
-      console.error("FormContext - Invalid initial template:", initialTemplate)
-      setIsLoading(false)
-      return
-    }
-    const timer = setTimeout(() => {
-      setIsLoading(false)
-    }, 500)
-
-    return () => clearTimeout(timer)
-  }, [initialTemplate])
-
-  useEffect(() => {
-    console.log("FormContext - Current template:", formLogic.template)
-  }, [formLogic.template])
-
-  const updateFormProperties = (updates: Partial<FormTemplate>) => {
-    formLogic.updateTemplate(updates)
-  }
-
-  const contextValue: FormContextType = {
-    ...formLogic,
-    selectedElementId,
-    setSelectedElementId,
-    updateFormProperties,
-    isLoading,
-    activeTab,
-    setActiveTab,
-    activePropertiesTab,
-    setActivePropertiesTab,
-  }
-
-  return <FormContext.Provider value={contextValue}>{children}</FormContext.Provider>
+  return <FormContext.Provider value={formLogic}>{children}</FormContext.Provider>
 }
 
 export function useFormContext() {

@@ -28,7 +28,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
 const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 function FormBuilderInner() {
-  const { template, updateTemplate, moveComponentBetweenSections, setSelectedElementId, setActivePropertiesTab } =
+  const { template, updateTemplate, moveComponentBetweenSections, setSelectedElementId, setActivePropertiesTab, addComponent } =
     useFormContext()
   const { toast } = useToast()
   const [activeTab, setActiveTab] = useState("constructor")
@@ -104,10 +104,46 @@ function FormBuilderInner() {
           sections: newSections,
         })
       } else if (type === "component") {
-        moveComponentBetweenSections(source.droppableId, destination.droppableId, source.index, destination.index)
+        // Si el origen es la paleta de componentes
+        if (source.droppableId === "componentPalette") {
+          // Extraer el tipo de componente del draggableId (formato: "palette-tipo")
+          const componentType = draggableId.split("-")[1]
+          
+          // Crear un nuevo componente con el tipo extraído
+          const newComponent = {
+            id: uuidv4(),
+            type: componentType,
+            label: `Nuevo ${componentType.charAt(0).toUpperCase() + componentType.slice(1)}`,
+            placeholder: "",
+            validation: {},
+            options: componentType === "select" || componentType === "radio" ? ["Opción 1", "Opción 2", "Opción 3"] : [],
+            columns: componentType === "dynamicTable" 
+              ? [
+                  {
+                    id: uuidv4(),
+                    type: "text",
+                    label: "Columna 1",
+                    validation: { required: true }
+                  },
+                  {
+                    id: uuidv4(),
+                    type: "text",
+                    label: "Columna 2",
+                    validation: { required: false }
+                  }
+                ] 
+              : undefined
+          }
+          
+          // Añadir el componente a la sección de destino
+          addComponent(newComponent, destination.droppableId)
+        } else {
+          // Si es un movimiento entre secciones
+          moveComponentBetweenSections(source.droppableId, destination.droppableId, source.index, destination.index)
+        }
       }
     },
-    [template, updateTemplate, moveComponentBetweenSections],
+    [template, updateTemplate, moveComponentBetweenSections, addComponent],
   )
 
   return (

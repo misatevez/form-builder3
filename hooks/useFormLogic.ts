@@ -25,6 +25,8 @@ export function useFormLogic(initialTemplate: FormTemplate) {
     };
   });
   const [data, setData] = useState<FormData>({});
+  const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
+  const [activePropertiesTab, setActivePropertiesTab] = useState<"form" | "element">("form");
 
   useEffect(() => {
     console.log('useFormLogic - Template updated', template);
@@ -168,6 +170,8 @@ export function useFormLogic(initialTemplate: FormTemplate) {
   return {
     template,
     data,
+    selectedElementId,
+    activePropertiesTab,
     updateTemplate,
     updateData,
     addComponent,
@@ -177,5 +181,7 @@ export function useFormLogic(initialTemplate: FormTemplate) {
     removeSection,
     updateSection,
     moveComponentBetweenSections,
+    setSelectedElementId,
+    setActivePropertiesTab,
   };
 }
