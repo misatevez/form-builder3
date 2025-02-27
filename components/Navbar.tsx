@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter, usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -9,6 +9,9 @@ import { createClient } from "@/lib/supabase-browser"
 import { useAuth } from "@/components/auth/AuthContext"
 import { Menu, X, LayoutDashboard, FileEdit } from "lucide-react"
 
+// Correo electrónico con permisos de administrador
+const ADMIN_EMAIL = "apps@greenenergy.cr"
+
 export function Navbar() {
   const { primaryColor, textColor } = useTheme()
   const router = useRouter()
@@ -16,6 +19,25 @@ export function Navbar() {
   const { user, loading } = useAuth()
   const supabase = createClient()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [userEmail, setUserEmail] = useState("")
+  
+  // Verificar si el usuario actual es administrador
+  const isAdmin = userEmail === ADMIN_EMAIL
+  
+  // Obtener el correo electrónico del usuario cuando se carga el componente
+  useEffect(() => {
+    if (user) {
+      setUserEmail(user.email || "")
+    }
+  }, [user])
+  
+  // Verificar permisos para acceder a rutas protegidas
+  useEffect(() => {
+    // Si el usuario no es administrador y está intentando acceder a form-builder, redirigir al dashboard
+    if (user && !isAdmin && pathname === "/form-builder") {
+      router.push("/dashboard")
+    }
+  }, [pathname, isAdmin, user, router])
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut()
@@ -50,14 +72,19 @@ export function Navbar() {
                   <LayoutDashboard className="h-4 w-4" />
                   Dashboard
                 </Button>
-                <Button
-                  variant="secondary"
-                  onClick={() => router.push('/form-builder')}
-                  className={`flex items-center gap-2 ${pathname === "/form-builder" ? "bg-opacity-80" : ""}`}
-                >
-                  <FileEdit className="h-4 w-4" />
-                  Constructor de Formularios
-                </Button>
+                
+                {/* Solo mostrar el botón de Constructor de Formularios si es admin */}
+                {isAdmin && (
+                  <Button
+                    variant="secondary"
+                    onClick={() => router.push('/form-builder')}
+                    className={`flex items-center gap-2 ${pathname === "/form-builder" ? "bg-opacity-80" : ""}`}
+                  >
+                    <FileEdit className="h-4 w-4" />
+                    Constructor de Formularios
+                  </Button>
+                )}
+                
                 <Button
                   onClick={handleLogout}
                   variant="secondary"
@@ -104,17 +131,22 @@ export function Navbar() {
                   <LayoutDashboard className="mr-2 h-4 w-4" />
                   Dashboard
                 </Button>
-                <Button
-                  variant="secondary"
-                  onClick={() => {
-                    router.push('/form-builder')
-                    setIsMenuOpen(false)
-                  }}
-                  className="w-full mb-2 justify-start"
-                >
-                  <FileEdit className="mr-2 h-4 w-4" />
-                  Constructor de Formularios
-                </Button>
+                
+                {/* Solo mostrar el botón de Constructor de Formularios si es admin */}
+                {isAdmin && (
+                  <Button
+                    variant="secondary"
+                    onClick={() => {
+                      router.push('/form-builder')
+                      setIsMenuOpen(false)
+                    }}
+                    className="w-full mb-2 justify-start"
+                  >
+                    <FileEdit className="mr-2 h-4 w-4" />
+                    Constructor de Formularios
+                  </Button>
+                )}
+                
                 <Button
                   onClick={handleLogout}
                   variant="secondary"

@@ -32,6 +32,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable"
 import { TemplateSelector } from "@/components/form-builder/TemplateSelector"
+import { AdminProtection } from "./AdminProtection"
 
 export default function FormBuilderPage() {
   const { toast } = useToast()
@@ -314,132 +315,134 @@ export default function FormBuilderPage() {
   }
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Constructor de Formularios</CardTitle>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={createNewForm}>
-              Nuevo
-            </Button>
-            <Button onClick={saveForm} disabled={isLoading}>
-              {isLoading ? "Guardando..." : formId ? "Actualizar" : "Guardar"}
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="form-name">Nombre del Formulario</Label>
-              <Input 
-                id="form-name" 
-                value={formName} 
-                onChange={(e) => setFormName(e.target.value)} 
-                placeholder="Ingrese el nombre del formulario" 
-              />
+    <AdminProtection>
+      <div className="container mx-auto py-6 space-y-6">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle>Constructor de Formularios</CardTitle>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={createNewForm}>
+                Nuevo
+              </Button>
+              <Button onClick={saveForm} disabled={isLoading}>
+                {isLoading ? "Guardando..." : formId ? "Actualizar" : "Guardar"}
+              </Button>
             </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="templates">Plantillas</TabsTrigger>
-          <TabsTrigger value="editor">Editor</TabsTrigger>
-          <TabsTrigger value="preview">Vista Previa</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="templates">
-          <TemplateSelector 
-            templates={templates} 
-            isLoading={isLoading} 
-            onSelect={loadTemplate} 
-            onRefresh={fetchTemplates}
-          />
-        </TabsContent>
-        
-        <TabsContent value="editor" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div className="md:col-span-1">
-              <ComponentPalette onAddComponent={handleAddComponent} />
-              <div className="mt-4 p-4 bg-muted rounded-lg">
-                <p className="text-sm text-muted-foreground mb-2">
-                  Sección activa para añadir componentes:
-                </p>
-                <Select 
-                  value={activeSection || ""} 
-                  onValueChange={setActiveSection}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccione una sección" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {sections.map(section => (
-                      <SelectItem key={section.id} value={section.id}>
-                        {section.title}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="form-name">Nombre del Formulario</Label>
+                <Input 
+                  id="form-name" 
+                  value={formName} 
+                  onChange={(e) => setFormName(e.target.value)} 
+                  placeholder="Ingrese el nombre del formulario" 
+                />
               </div>
             </div>
-            
-            <div className="md:col-span-3">
-              <DndContext
-                sensors={sensors}
-                collisionDetection={closestCenter}
-                onDragStart={handleDragStart}
-                onDragEnd={handleDragEnd}
-                onDragOver={handleDragOver}
-              >
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Estructura del Formulario</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <SortableContext
-                      items={sections.map(section => section.id)}
-                      strategy={verticalListSortingStrategy}
-                    >
-                      <div className="space-y-4">
-                        {sections.map((section, index) => (
-                          <FormSection
-                            key={section.id}
-                            section={section}
-                            index={index}
-                            updateSection={updateSection}
-                            removeSection={removeSection}
-                            updateComponent={updateComponent}
-                            removeComponent={removeComponent}
-                            isActive={section.id === activeSection}
-                            onActivate={() => setActiveSection(section.id)}
-                            isDragging={activeId === section.id}
-                          />
-                        ))}
-                      </div>
-                    </SortableContext>
-                    
-                    <Button 
-                      onClick={addSection} 
-                      variant="outline" 
-                      className="mt-4 w-full"
-                    >
-                      Añadir Sección
-                    </Button>
-                  </CardContent>
-                </Card>
-              </DndContext>
+          </CardContent>
+        </Card>
+
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="templates">Plantillas</TabsTrigger>
+            <TabsTrigger value="editor">Editor</TabsTrigger>
+            <TabsTrigger value="preview">Vista Previa</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="templates">
+            <TemplateSelector 
+              templates={templates} 
+              isLoading={isLoading} 
+              onSelect={loadTemplate} 
+              onRefresh={fetchTemplates}
+            />
+          </TabsContent>
+          
+          <TabsContent value="editor" className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <div className="md:col-span-1">
+                <ComponentPalette onAddComponent={handleAddComponent} />
+                <div className="mt-4 p-4 bg-muted rounded-lg">
+                  <p className="text-sm text-muted-foreground mb-2">
+                    Sección activa para añadir componentes:
+                  </p>
+                  <Select 
+                    value={activeSection || ""} 
+                    onValueChange={setActiveSection}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccione una sección" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {sections.map(section => (
+                        <SelectItem key={section.id} value={section.id}>
+                          {section.title}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              
+              <div className="md:col-span-3">
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragStart={handleDragStart}
+                  onDragEnd={handleDragEnd}
+                  onDragOver={handleDragOver}
+                >
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Estructura del Formulario</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <SortableContext
+                        items={sections.map(section => section.id)}
+                        strategy={verticalListSortingStrategy}
+                      >
+                        <div className="space-y-4">
+                          {sections.map((section, index) => (
+                            <FormSection
+                              key={section.id}
+                              section={section}
+                              index={index}
+                              updateSection={updateSection}
+                              removeSection={removeSection}
+                              updateComponent={updateComponent}
+                              removeComponent={removeComponent}
+                              isActive={section.id === activeSection}
+                              onActivate={() => setActiveSection(section.id)}
+                              isDragging={activeId === section.id}
+                            />
+                          ))}
+                        </div>
+                      </SortableContext>
+                      
+                      <Button 
+                        onClick={addSection} 
+                        variant="outline" 
+                        className="mt-4 w-full"
+                      >
+                        Añadir Sección
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </DndContext>
+              </div>
             </div>
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="preview">
-          <FormPreview 
-            formName={formName}
-            sections={sections}
-          />
-        </TabsContent>
-      </Tabs>
-    </div>
+          </TabsContent>
+          
+          <TabsContent value="preview">
+            <FormPreview 
+              formName={formName}
+              sections={sections}
+            />
+          </TabsContent>
+        </Tabs>
+      </div>
+    </AdminProtection>
   )
 }

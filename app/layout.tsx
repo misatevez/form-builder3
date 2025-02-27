@@ -6,6 +6,7 @@ import type React from "react"
 import { AuthProvider } from "@/components/auth/AuthContext"
 import { createServerSupabaseClient } from "@/lib/supabase-auth"
 import { ThemeProvider } from '@/context/ThemeContext'
+import { Metadata } from "next"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -20,6 +21,12 @@ export default async function RootLayout({
   } = await supabase.auth.getSession();
 
   console.log("RootLayout - Server Session:", session);
+
+  const metadata: Metadata = {
+    title: "GreenEnergy Form Builder",
+    description: "Crea y administra formularios de manera fácil y eficiente",
+  }
+
 
   return (
     <html lang="en">
