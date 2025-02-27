@@ -23,6 +23,8 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 import { cn } from "@/lib/utils"
 import { v4 as uuidv4 } from "uuid"
 import { useAuth } from "./auth/AuthContext"
+import TextArea from "./form-elements/TextArea"
+
 interface EntryFormModalProps {
   isOpen: boolean
   onClose: () => void
@@ -305,6 +307,22 @@ export function EditEntryModal({ isOpen, onClose, form, entry, fileName = "" }: 
                       </div>
                     </div>
                   `
+                  case "textarea":
+                    return (
+                      <div className="field">
+                        <div className="field-label">${component.label}</div>
+                        <div className="field-value">
+                          <TextArea
+                            id={component.id}
+                            label={component.label}
+                            value={value || ""}
+                            onChange={(newValue) => handleInputChange(component.id, newValue)}
+                            placeholder={component.placeholder}
+                            validation={component.validation}
+                          />
+                        </div>
+                      </div>
+                    )
                   default:
                     return `
                     <div class="field">
@@ -390,6 +408,19 @@ export function EditEntryModal({ isOpen, onClose, form, entry, fileName = "" }: 
               label={component.label}
               value={formData[component.id] || ""}
               onChange={(value) => handleInputChange(component.id, value)}
+              validation={component.validation}
+            />
+          </div>
+        )
+      case "textarea":
+        return (
+          <div className="mb-4">
+            <TextArea
+              id={component.id}
+              label={component.label}
+              value={formData[component.id] || ""}
+              onChange={(value) => handleInputChange(component.id, value)}
+              placeholder={component.placeholder}
               validation={component.validation}
             />
           </div>

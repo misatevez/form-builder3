@@ -97,8 +97,18 @@ export function ComponentPalette({ onAddComponent }) {
     }
   }
 
-  const handleClick = (type) => {
-    const newComponent = createNewComponent(type)
+  const handleClick = (type: string) => {
+    const newComponent = {
+      id: uuidv4(),
+      type,
+      label: getDefaultLabel(type),
+    }
+    
+    // Asegurarse de que el tipo sea correcto para textarea
+    if (type === "textarea") {
+      newComponent.type = "textarea"; // Asegurarse de que el tipo sea exactamente "textarea"
+    }
+    
     onAddComponent(newComponent)
   }
 

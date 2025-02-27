@@ -25,9 +25,9 @@ export const TextInput: React.FC<TextInputProps> = ({
 }) => {
   return (
     <div className="space-y-2">
-      <Label htmlFor={id}>
+      <Label htmlFor={id} className="text-sm font-medium">
         {label}
-        {validation?.required && <span className="text-destructive ml-1">*</span>}
+        {validation?.required && <span className="text-red-500 ml-1">*</span>}
       </Label>
       {multiline ? (
         <textarea
