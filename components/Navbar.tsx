@@ -42,14 +42,22 @@ export function Navbar() {
           <div className="hidden md:flex items-center space-x-4">
             {user && (
               <>
-                <Link href="/dashboard" className={`flex items-center text-white hover:text-gray-200 ${pathname === "/dashboard" ? "font-bold" : ""}`}>
-                  <LayoutDashboard className="mr-1 h-4 w-4" />
+                <Button
+                  variant="secondary"
+                  onClick={() => router.push('/dashboard')}
+                  className={`flex items-center gap-2 ${pathname === "/dashboard" ? "bg-opacity-80" : ""}`}
+                >
+                  <LayoutDashboard className="h-4 w-4" />
                   Dashboard
-                </Link>
-                <Link href="/form-builder" className={`flex items-center text-white hover:text-gray-200 ${pathname === "/form-builder" ? "font-bold" : ""}`}>
-                  <FileEdit className="mr-1 h-4 w-4" />
+                </Button>
+                <Button
+                  variant="secondary"
+                  onClick={() => router.push('/form-builder')}
+                  className={`flex items-center gap-2 ${pathname === "/form-builder" ? "bg-opacity-80" : ""}`}
+                >
+                  <FileEdit className="h-4 w-4" />
                   Constructor de Formularios
-                </Link>
+                </Button>
                 <Button
                   onClick={handleLogout}
                   variant="secondary"
@@ -85,22 +93,32 @@ export function Navbar() {
           <div className="md:hidden mt-2 py-2">
             {user && (
               <>
-                <Link href="/dashboard" className="block py-2 text-white hover:text-gray-200">
-                  <div className="flex items-center">
-                    <LayoutDashboard className="mr-1 h-4 w-4" />
-                    Dashboard
-                  </div>
-                </Link>
-                <Link href="/form-builder" className="block py-2 text-white hover:text-gray-200">
-                  <div className="flex items-center">
-                    <FileEdit className="mr-1 h-4 w-4" />
-                    Constructor de Formularios
-                  </div>
-                </Link>
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    router.push('/dashboard')
+                    setIsMenuOpen(false)
+                  }}
+                  className="w-full mb-2 justify-start"
+                >
+                  <LayoutDashboard className="mr-2 h-4 w-4" />
+                  Dashboard
+                </Button>
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    router.push('/form-builder')
+                    setIsMenuOpen(false)
+                  }}
+                  className="w-full mb-2 justify-start"
+                >
+                  <FileEdit className="mr-2 h-4 w-4" />
+                  Constructor de Formularios
+                </Button>
                 <Button
                   onClick={handleLogout}
-                  variant="outline"
-                  className="w-full mt-2"
+                  variant="secondary"
+                  className="w-full"
                 >
                   Logout
                 </Button>
