@@ -2,16 +2,17 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { useTheme } from "@/utils/theme"
 import { createClient } from "@/lib/supabase-browser"
 import { useAuth } from "@/components/auth/AuthContext"
-import { Menu, X } from "lucide-react"
+import { Menu, X, LayoutDashboard, FileEdit } from "lucide-react"
 
 export function Navbar() {
   const { primaryColor, textColor } = useTheme()
   const router = useRouter()
+  const pathname = usePathname()
   const { user, loading } = useAuth()
   const supabase = createClient()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -41,11 +42,17 @@ export function Navbar() {
           <div className="hidden md:flex items-center space-x-4">
             {user && (
               <>
-             
+                <Link href="/dashboard" className={`flex items-center text-white hover:text-gray-200 ${pathname === "/dashboard" ? "font-bold" : ""}`}>
+                  <LayoutDashboard className="mr-1 h-4 w-4" />
+                  Dashboard
+                </Link>
+                <Link href="/form-builder" className={`flex items-center text-white hover:text-gray-200 ${pathname === "/form-builder" ? "font-bold" : ""}`}>
+                  <FileEdit className="mr-1 h-4 w-4" />
+                  Constructor de Formularios
+                </Link>
                 <Button
                   onClick={handleLogout}
                   variant="secondary"
-                 
                 >
                   Logout
                 </Button>
@@ -78,7 +85,18 @@ export function Navbar() {
           <div className="md:hidden mt-2 py-2">
             {user && (
               <>
-               
+                <Link href="/dashboard" className="block py-2 text-white hover:text-gray-200">
+                  <div className="flex items-center">
+                    <LayoutDashboard className="mr-1 h-4 w-4" />
+                    Dashboard
+                  </div>
+                </Link>
+                <Link href="/form-builder" className="block py-2 text-white hover:text-gray-200">
+                  <div className="flex items-center">
+                    <FileEdit className="mr-1 h-4 w-4" />
+                    Constructor de Formularios
+                  </div>
+                </Link>
                 <Button
                   onClick={handleLogout}
                   variant="outline"
